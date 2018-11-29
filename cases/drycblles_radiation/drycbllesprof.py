@@ -45,6 +45,7 @@ nc_qt [:] = qt [:]
 nc_group_radiation = nc_file.createGroup("radiation")
 nc_group_radiation.createDimension("level", nc_file_rfmip.dimensions["level"].size)
 nc_group_radiation.createDimension("layer", nc_file_rfmip.dimensions["layer"].size)
+nc_group_radiation.createDimension("col", 1)
 
 nc_pres_level = nc_group_radiation.createVariable("pres_level", float_type, ("level"))
 nc_pres_layer = nc_group_radiation.createVariable("pres_layer", float_type, ("layer"))
@@ -55,6 +56,12 @@ nc_pres_level[:] = nc_file_rfmip.variables["pres_level"][site,:]
 nc_pres_layer[:] = nc_file_rfmip.variables["pres_layer"][site,:]
 nc_temp_level[:] = nc_file_rfmip.variables["temp_level"][expt,site,:]
 nc_temp_layer[:] = nc_file_rfmip.variables["temp_layer"][expt,site,:]
+
+nc_surface_emissivity = nc_group_radiation.createVariable("surface_emissivity", float_type, ("col"))
+nc_surface_temperature = nc_group_radiation.createVariable("surface_temperature", float_type, ("col"))
+
+nc_surface_emissivity[:] = nc_file_rfmip.variables["surface_emissivity"][site]
+nc_surface_temperature[:] = nc_file_rfmip.variables["surface_temperature"][expt,site]
 
 nc_file_rfmip.close()
 nc_file.close()

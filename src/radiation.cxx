@@ -74,6 +74,7 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     int layer = group_nc.get_variable_dimensions("pres_layer").at("layer");
     int level = group_nc.get_variable_dimensions("pres_level").at("level");
 
+    // Download pressure and temperature data.
     pres_layer.resize(layer);
     pres_level.resize(level);
     temp_layer.resize(layer);
@@ -84,8 +85,15 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     group_nc.get_variable(temp_layer, "temp_layer", {0}, {layer});
     group_nc.get_variable(temp_level, "temp_level", {0}, {level});
 
-    for (auto& temp : temp_layer)
-        std::cout << temp << std::endl;
+    // Download surface boundary conditions for long wave.
+    surface_emissivity.resize(1);
+    surface_temperature.resize(1);
+
+    group_nc.get_variable(surface_emissivity, "surface_emissivity", {0}, {1});
+    group_nc.get_variable(surface_temperature, "surface_temperature", {0}, {1});
+
+    std::cout << surface_emissivity[0] << std::endl;
+    std::cout << surface_temperature[0] << std::endl;
 
     throw 666;
 }

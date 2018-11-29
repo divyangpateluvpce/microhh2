@@ -57,5 +57,8 @@ class Radiation
         std::vector<TF> temp_layer;
         std::vector<TF> pres_level;
         std::vector<TF> temp_level;
+
+        std::vector<TF> surface_emissivity;
+        std::vector<TF> surface_temperature;
 };
 #endif

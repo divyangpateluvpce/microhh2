@@ -34,23 +34,6 @@
 
 namespace
 {
-    /*
-    // Wrapper functions to the RRTMG long wave kernels.
-    extern "C"
-    {
-        void c_rrtmg_lw_init(double *cpdair);
-        void c_rrtmg_lw (
-                int *ncol    ,int *nlay    ,int *icld    ,int *idrv    ,
-                double *play    ,double *plev    ,double *tlay    ,double *tlev    ,double *tsfc    ,
-                double *h2ovmr  ,double *o3vmr   ,double *co2vmr  ,double *ch4vmr  ,double *n2ovmr  ,double *o2vmr,
-                double *cfc11vmr,double *cfc12vmr,double *cfc22vmr,double *ccl4vmr ,double *emis    ,
-                int *inflglw ,int *iceflglw,int *liqflglw,double *cldfr   ,
-                double *taucld  ,double *cicewp  ,double *cliqwp  ,double *reice   ,double *reliq   ,
-                double *tauaer  ,
-                double *uflx    ,double *dflx    ,double *hr      ,double *uflxc   ,double *dflxc,  double *hrc,
-                double *duflx_dt,double *duflxc_dt );
-    }
-    */
 }
 
 template<typename TF>
@@ -87,6 +70,24 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
         return;
 
     Netcdf_group group_nc = input_nc.get_group("radiation");
+
+    int layer = group_nc.get_variable_dimensions("pres_layer").at("layer");
+    int level = group_nc.get_variable_dimensions("pres_level").at("level");
+
+    pres_layer.resize(layer);
+    pres_level.resize(level);
+    temp_layer.resize(layer);
+    temp_level.resize(level);
+
+    group_nc.get_variable(pres_layer, "pres_layer", {0}, {layer});
+    group_nc.get_variable(pres_level, "pres_level", {0}, {level});
+    group_nc.get_variable(temp_layer, "temp_layer", {0}, {layer});
+    group_nc.get_variable(temp_level, "temp_level", {0}, {level});
+
+    for (auto& temp : temp_layer)
+        std::cout << temp << std::endl;
+
+    throw 666;
 }
 
 template<typename TF>

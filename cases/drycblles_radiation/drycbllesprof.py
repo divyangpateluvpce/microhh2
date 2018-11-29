@@ -1,4 +1,11 @@
-import numpy
+import numpy as np
+import netCDF4 as nc
+
+# Settings
+dthetadz = 0.003
+site = 0
+expt = 0
+float_type = "f8"
 
 # Get number of vertical levels and size from .ini file
 with open('drycblles.ini') as f:
@@ -10,40 +17,44 @@ with open('drycblles.ini') as f:
 
 dz = zsize / kmax
 
-dthetadz = 0.003
-
 # set the height
-z    = numpy.linspace(0.5*dz, zsize-0.5*dz, kmax)
-th   = numpy.zeros(numpy.size(z))
-thls = numpy.zeros(numpy.size(z))
-wls  = numpy.zeros(numpy.size(z))
+z   = np.linspace(0.5*dz, zsize-0.5*dz, kmax)
+thl = np.zeros(np.size(z))
+qt  = np.zeros(np.size(z))
 
 # linearly stratified profile
 for k in range(kmax):
-    th  [k] = 300. + dthetadz*z[k]
-    thls[k] = 2.*(z[k]/zsize - 0.5) / 3600.
-    wls [k] = -0.01*(z[k]/zsize)
+    thl[k] = 300. + dthetadz*z[k]
 
-"""
-# well mixed profile with jump
-h    = 1000.
-dth  = 10.
-dthz = 100.
+# Save all the input data to NetCDF
+nc_file = nc.Dataset("drycblles.nc", mode="w", datamodel="NETCDF4", clobber=True)
+nc_file_rfmip = nc.Dataset("rfmip.nc", mode="r", datamodel="NETCDF4", clobber=False)
 
-for k in range(kmax):
-    if(z[k] <= h - 0.5*dthz):
-        th[k] = 300.
-    elif(z[k] <= h + 0.5*dthz):
-        th[k] = 300. + dth/dthz * (z[k]-(h-0.5*dthz))
-    else:
-        th[k] = 300. + dth + dthetadz*(z[k]-(h+0.5*dthz))
-    thls[k] = 2.*(z[k]/zsize - 0.5) / 3600.
-    wls [k] = -0.01*(z[k]/zsize)
-"""
+nc_file.createDimension("z", kmax)
+nc_z = nc_file.createVariable("z", float_type, ("z"))
+nc_z[:] = z[:]
 
-# write the data to a file
-proffile = open('drycblles.prof','w')
-proffile.write('{0:^20s} {1:^20s} {2:^20s} {3:^20s}\n'.format('z','th','thls', 'wls'))
-for k in range(kmax):
-    proffile.write('{0:1.14E} {1:1.14E} {2:1.14E} {3:1.14E}\n'.format(z[k], th[k], thls[k], wls[k]))
-proffile.close()
+# Create a group called "init" for the initial profiles.
+nc_group_init = nc_file.createGroup("init")
+
+nc_thl = nc_group_init.createVariable("thl", float_type, ("z"))
+nc_qt  = nc_group_init.createVariable("qt" , float_type, ("z"))
+nc_thl[:] = thl[:]
+nc_qt [:] = qt [:]
+
+nc_group_radiation = nc_file.createGroup("radiation")
+nc_group_radiation.createDimension("level", nc_file_rfmip.dimensions["level"].size)
+nc_group_radiation.createDimension("layer", nc_file_rfmip.dimensions["layer"].size)
+
+nc_pres_level = nc_group_radiation.createVariable("pres_level", float_type, ("level"))
+nc_pres_layer = nc_group_radiation.createVariable("pres_layer", float_type, ("layer"))
+nc_temp_level = nc_group_radiation.createVariable("temp_level", float_type, ("level"))
+nc_temp_layer = nc_group_radiation.createVariable("temp_layer", float_type, ("layer"))
+
+nc_pres_level[:] = nc_file_rfmip.variables["pres_level"][site,:]
+nc_pres_layer[:] = nc_file_rfmip.variables["pres_layer"][site,:]
+nc_temp_level[:] = nc_file_rfmip.variables["temp_level"][expt,site,:]
+nc_temp_layer[:] = nc_file_rfmip.variables["temp_layer"][expt,site,:]
+
+nc_file_rfmip.close()
+nc_file.close()

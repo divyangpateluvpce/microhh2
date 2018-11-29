@@ -33,6 +33,7 @@ class Input;
 template<typename> class Grid;
 template<typename> class Fields;
 template<typename> class Thermo;
+class Netcdf_handle;
 
 template<typename TF>
 class Radiation
@@ -41,7 +42,7 @@ class Radiation
         Radiation(Master&, Grid<TF>&, Fields<TF>&, Input&);
         ~Radiation();
         void init();
-        void create(Thermo<TF>&);
+        void create(Thermo<TF>&, Netcdf_handle&);
         void exec(Thermo<TF>&);
 
     private:
@@ -51,54 +52,5 @@ class Radiation
         Field3d_operators<TF> field3d_operators;
 
         Radiation_type swradiation;
-
-        int ncol;
-        int nlay;
-        int nbndlw;
-
-        int icld;
-        int idrv;
-
-        std::vector<double> play; // (ncol, nlay)
-        std::vector<double> plev; // (ncol, nlay+1)
-        std::vector<double> tlay; // (ncol, nlay)
-        std::vector<double> tlev; // (ncol, nlay+1)
-
-        std::vector<double> tsfc; // (ncol)
-
-        std::vector<double> h2ovmr; // (ncol, nlay)
-        std::vector<double> o3vmr;  // (ncol, nlay)
-        std::vector<double> co2vmr; // (ncol, nlay)
-        std::vector<double> ch4vmr; // (ncol, nlay)
-        std::vector<double> n2ovmr; // (ncol, nlay)
-        std::vector<double> o2vmr;  // (ncol, nlay)
-
-        std::vector<double> cfc11vmr; // (ncol, nlay)
-        std::vector<double> cfc12vmr; // (ncol, nlay)
-        std::vector<double> cfc22vmr; // (ncol, nlay)
-        std::vector<double> ccl4vmr;  // (ncol, nlay)
-        std::vector<double> emis;     // (ncol, nbndlw)
-
-        int inflglw;
-        int iceflglw;
-        int liqflglw;
-
-        std::vector<double> cldfr;  // (ncol, nlay)
-        std::vector<double> cicewp; // (ncol, nlay)
-        std::vector<double> cliqwp; // (ncol, nlay)
-        std::vector<double> reice;  // (ncol, nlay)
-        std::vector<double> reliq;  // (ncol, nlay)
-        std::vector<double> taucld; // (nbndlw, ncol, nlay)
-        std::vector<double> tauaer; // (nbndlw, ncol, nlay)
-
-        // OUTPUT
-        std::vector<double> uflx;      // (ncol, nlay)
-        std::vector<double> dflx;      // (ncol, nlay)
-        std::vector<double> hr;        // (ncol, nlay)
-        std::vector<double> uflxc;     // (ncol, nlay)
-        std::vector<double> dflxc;     // (ncol, nlay)
-        std::vector<double> hrc;       // (ncol, nlay)
-        std::vector<double> duflx_dt;  // (ncol, nlay)
-        std::vector<double> duflxc_dt; // (ncol, nlay)
 };
 #endif

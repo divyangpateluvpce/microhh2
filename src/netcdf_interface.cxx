@@ -226,6 +226,26 @@ Netcdf_group::Netcdf_group(Master& master, int ncid_in, int root_ncid_in) :
     root_ncid = root_ncid_in;
 }
 
+int Netcdf_handle::get_dimension_size(const std::string& name)
+{
+    int nc_check_code = 0;
+    int dim_id;
+
+    if (master.get_mpiid() == 0)
+        nc_check_code = nc_inq_dimid(ncid, name.c_str(), &dim_id);
+    nc_check(master, nc_check_code);
+
+    size_t dim_len_size_t;
+    if (master.get_mpiid() == 0)
+        nc_check_code = nc_inq_dimlen(ncid, dim_id, &dim_len_size_t);
+    nc_check(master, nc_check_code);
+
+    int dim_len = dim_len_size_t;
+    master.broadcast(&dim_len, 1);
+
+    return dim_len;
+}
+
 std::map<std::string, int> Netcdf_handle::get_variable_dimensions(const std::string& name)
 {
     int nc_check_code = 0;
@@ -252,7 +272,8 @@ std::map<std::string, int> Netcdf_handle::get_variable_dimensions(const std::str
         char dim_name[NC_MAX_NAME+1];
         size_t dim_length_size_t;
 
-        nc_check_code = nc_inq_dim(ncid, dimids[n], dim_name, &dim_length_size_t);
+        if (master.get_mpiid() == 0)
+            nc_check_code = nc_inq_dim(ncid, dimids[n], dim_name, &dim_length_size_t);
         nc_check(master, nc_check_code);
 
         int dim_length = dim_length_size_t;

@@ -108,14 +108,29 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     // Read the gas concentrations.
     std::vector<Gas_concs<TF>> gas_conc_array;
 
-    // Read the gas concentrations.
-
     // Download surface boundary conditions for long wave.
     surface_emissivity.resize(1);
     surface_temperature.resize(1);
 
     group_nc.get_variable(surface_emissivity, "surface_emissivity", {0}, {1});
     group_nc.get_variable(surface_temperature, "surface_temperature", {0}, {1});
+
+    // Read k-distribution information.
+    int n_temps          = coef_lw_nc.get_dimension_size("temperature");
+    int n_press          = coef_lw_nc.get_dimension_size("pressure");
+    int n_absorbers      = coef_lw_nc.get_dimension_size("absorber");
+    int n_minorabsorbers = coef_lw_nc.get_dimension_size("minor_absorber");
+    int n_extabsorbers   = coef_lw_nc.get_dimension_size("absorber_ext");
+    int n_mixingfracs    = coef_lw_nc.get_dimension_size("mixing_fraction");
+    int n_layers         = coef_lw_nc.get_dimension_size("atmos_layer");
+    int n_bnds           = coef_lw_nc.get_dimension_size("bnd");
+    int n_gpts           = coef_lw_nc.get_dimension_size("gpt");
+    int n_pairs          = coef_lw_nc.get_dimension_size("pair");
+    int n_minor_absorber_intervals_lower = coef_lw_nc.get_dimension_size("minor_absorber_intervals_lower");
+    int n_minor_absorber_intervals_upper = coef_lw_nc.get_dimension_size("minor_absorber_intervals_upper");
+    int n_internalSourcetemps = coef_lw_nc.get_dimension_size("temperature_Planck");
+    int n_contributors_lower  = coef_lw_nc.get_dimension_size("contributors_lower");
+    int n_contributors_upper  = coef_lw_nc.get_dimension_size("contributors_upper");
 
     throw 666;
 }

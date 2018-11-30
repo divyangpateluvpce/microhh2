@@ -128,9 +128,9 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     int n_pairs          = coef_lw_nc.get_dimension_size("pair");
     int n_minor_absorber_intervals_lower = coef_lw_nc.get_dimension_size("minor_absorber_intervals_lower");
     int n_minor_absorber_intervals_upper = coef_lw_nc.get_dimension_size("minor_absorber_intervals_upper");
-    int n_internalSourcetemps = coef_lw_nc.get_dimension_size("temperature_Planck");
-    int n_contributors_lower  = coef_lw_nc.get_dimension_size("contributors_lower");
-    int n_contributors_upper  = coef_lw_nc.get_dimension_size("contributors_upper");
+    int n_internal_sourcetemps = coef_lw_nc.get_dimension_size("temperature_Planck");
+    int n_contributors_lower = coef_lw_nc.get_dimension_size("contributors_lower");
+    int n_contributors_upper = coef_lw_nc.get_dimension_size("contributors_upper");
 
     throw 666;
 }

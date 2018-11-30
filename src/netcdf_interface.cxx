@@ -286,6 +286,20 @@ namespace
     {
         return nc_get_vara_float(ncid, var_id, start.data(), count.data(), values.data());
     }
+
+    template<>
+    int nc_get_vara_wrapper(
+            int ncid, int var_id, const std::vector<size_t>& start, const std::vector<size_t>& count, std::vector<char>& values)
+    {
+        return nc_get_vara_text(ncid, var_id, start.data(), count.data(), values.data());
+    }
+
+    template<>
+    int nc_get_vara_wrapper(
+            int ncid, int var_id, const std::vector<size_t>& start, const std::vector<size_t>& count, std::vector<int>& values)
+    {
+        return nc_get_vara_int(ncid, var_id, start.data(), count.data(), values.data());
+    }
 }
 
 template<typename TF>
@@ -361,3 +375,5 @@ void Netcdf_variable::insert(const double value, const std::vector<int> i_start)
 
 template void Netcdf_handle::get_variable<double>(std::vector<double>&, const std::string&, const std::vector<int>&, const std::vector<int>&);
 template void Netcdf_handle::get_variable<float> (std::vector<float> &, const std::string&, const std::vector<int>&, const std::vector<int>&);
+template void Netcdf_handle::get_variable<char>  (std::vector<char>  &, const std::string&, const std::vector<int>&, const std::vector<int>&);
+template void Netcdf_handle::get_variable<int>   (std::vector<int >  &, const std::string&, const std::vector<int>&, const std::vector<int>&);

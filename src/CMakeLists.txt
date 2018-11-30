@@ -21,7 +21,7 @@
 #
 FILE(GLOB sourcefiles "../src/*.cxx" "../src/*.cu")
 #include_directories(${INCLUDE_DIRS} "../include")
-include_directories("../include" SYSTEM ${INCLUDE_DIRS})
+include_directories("../include" "../include_rrtmgp" SYSTEM ${INCLUDE_DIRS})
 
 if(USECUDA)
   cuda_add_library(microhhc STATIC ${sourcefiles})

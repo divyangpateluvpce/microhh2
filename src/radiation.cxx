@@ -23,6 +23,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <boost/algorithm/string.hpp>
 
 #include "radiation.h"
 #include "master.h"
@@ -31,6 +32,8 @@
 #include "thermo.h"
 #include "input.h"
 #include "netcdf_interface.h"
+
+#include "Gas_concs.h"
 
 namespace
 {
@@ -71,6 +74,23 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
 
     Netcdf_group group_nc = input_nc.get_group("radiation");
 
+    Netcdf_file coef_lw_nc(master, "coefficients_lw.nc", Netcdf_mode::Read);
+
+    // Get the gas names.
+    std::vector<std::string> gas_names;
+    std::map<std::string, int> dims = coef_lw_nc.get_variable_dimensions("gas_names");
+
+    int n_adsorber = dims.at("absorber");
+    int n_char = dims.at("string_len");
+    for (int n=0; n<n_adsorber; ++n)
+    {
+        std::vector<char> gas_name_char(n_char);
+        coef_lw_nc.get_variable(gas_name_char, "gas_names", {n,0}, {1,n_char});
+        std::string gas_name(gas_name_char.begin(), gas_name_char.end());
+        boost::trim(gas_name);
+        gas_names.push_back(gas_name);
+    }
+
     int layer = group_nc.get_variable_dimensions("pres_layer").at("layer");
     int level = group_nc.get_variable_dimensions("pres_level").at("level");
 
@@ -85,15 +105,17 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     group_nc.get_variable(temp_layer, "temp_layer", {0}, {layer});
     group_nc.get_variable(temp_level, "temp_level", {0}, {level});
 
+    // Read the gas concentrations.
+    std::vector<Gas_concs<TF>> gas_conc_array;
+
+    // Read the gas concentrations.
+
     // Download surface boundary conditions for long wave.
     surface_emissivity.resize(1);
     surface_temperature.resize(1);
 
     group_nc.get_variable(surface_emissivity, "surface_emissivity", {0}, {1});
     group_nc.get_variable(surface_temperature, "surface_temperature", {0}, {1});
-
-    std::cout << surface_emissivity[0] << std::endl;
-    std::cout << surface_temperature[0] << std::endl;
 
     throw 666;
 }

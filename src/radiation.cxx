@@ -76,21 +76,6 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
 
     Netcdf_file coef_lw_nc(master, "coefficients_lw.nc", Netcdf_mode::Read);
 
-    // Get the gas names.
-    std::vector<std::string> gas_names;
-    std::map<std::string, int> dims = coef_lw_nc.get_variable_dimensions("gas_names");
-
-    int n_adsorber = dims.at("absorber");
-    int n_char = dims.at("string_len");
-    for (int n=0; n<n_adsorber; ++n)
-    {
-        std::vector<char> gas_name_char(n_char);
-        coef_lw_nc.get_variable(gas_name_char, "gas_names", {n,0}, {1,n_char});
-        std::string gas_name(gas_name_char.begin(), gas_name_char.end());
-        boost::trim(gas_name);
-        gas_names.push_back(gas_name);
-    }
-
     int layer = group_nc.get_variable_dimensions("pres_layer").at("layer");
     int level = group_nc.get_variable_dimensions("pres_level").at("level");
 
@@ -115,10 +100,12 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     group_nc.get_variable(surface_emissivity, "surface_emissivity", {0}, {1});
     group_nc.get_variable(surface_temperature, "surface_temperature", {0}, {1});
 
+    // READ K-DISTRIBUTION MOVE TO SEPARATE FUNCTION LATER...
     // Read k-distribution information.
     int n_temps          = coef_lw_nc.get_dimension_size("temperature");
     int n_press          = coef_lw_nc.get_dimension_size("pressure");
     int n_absorbers      = coef_lw_nc.get_dimension_size("absorber");
+    int n_char           = coef_lw_nc.get_dimension_size("string_len");
     int n_minorabsorbers = coef_lw_nc.get_dimension_size("minor_absorber");
     int n_extabsorbers   = coef_lw_nc.get_dimension_size("absorber_ext");
     int n_mixingfracs    = coef_lw_nc.get_dimension_size("mixing_fraction");
@@ -131,6 +118,20 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     int n_internal_sourcetemps = coef_lw_nc.get_dimension_size("temperature_Planck");
     int n_contributors_lower = coef_lw_nc.get_dimension_size("contributors_lower");
     int n_contributors_upper = coef_lw_nc.get_dimension_size("contributors_upper");
+
+    // Read gas names.
+    std::vector<std::string> gas_names;
+    for (int n=0; n<n_absorbers; ++n)
+    {
+        std::vector<char> gas_name_char(n_char);
+        coef_lw_nc.get_variable(gas_name_char, "gas_names", {n,0}, {1,n_char});
+        std::string gas_name(gas_name_char.begin(), gas_name_char.end());
+        boost::trim(gas_name);
+        gas_names.push_back(gas_name);
+    }
+    // END READ K-DISTRIBUTION
+    for (const std::string& gas_name : gas_names)
+        std::cout << gas_name << std::endl;
 
     throw 666;
 }

@@ -22,6 +22,7 @@
 
 #include <vector>
 #include <string>
+#include <numeric>
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 
@@ -64,6 +65,39 @@ void Radiation<TF>::init()
 {
     if (swradiation == Radiation_type::Disabled)
         return;
+}
+
+namespace
+{
+    void get_variable_string(
+            std::vector<std::string>& var,
+            const std::string& var_name,
+            std::vector<int> i_count,
+            Netcdf_handle& input_nc,
+            const int string_len,
+            bool trim=false)
+    {
+        // Multiply all elements in i_count.
+        int total_count = std::accumulate(i_count.begin(), i_count.end(), 1, std::multiplies<>());
+
+        // Add the string length as the rightmost dimension.
+        i_count.push_back(string_len);
+
+        // Multiply all elements in i_count.
+        int total_count_char = std::accumulate(i_count.begin(), i_count.end(), 1, std::multiplies<>());
+
+        // Read the entire char array;
+        std::vector<char> var_char;
+        input_nc.get_variable(var_char, var_name, i_count);
+
+        for (int n=0; n<total_count; ++n)
+        {
+            std::string s(var_char.begin()+n*string_len, var_char.begin()+(n+1)*string_len);
+            if (trim)
+                boost::trim(s);
+            var.push_back(s);
+        }
+    }
 }
 
 template<typename TF>
@@ -121,43 +155,45 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
 
     // Read gas names.
     std::vector<std::string> gas_names;
-    for (int n=0; n<n_absorbers; ++n)
-    {
-        std::vector<char> gas_name_char(n_char);
-        coef_lw_nc.get_variable(gas_name_char, "gas_names", {n,0}, {1,n_char});
-        std::string gas_name(gas_name_char.begin(), gas_name_char.end());
-        boost::trim(gas_name);
-        gas_names.push_back(gas_name);
-    }
+    get_variable_string(gas_names, "gas_names", {n_absorbers}, coef_lw_nc, n_char, true);
 
     std::vector<int> key_species;
-    // coef_lw_nc.get_variable(key_species, "key_species", {2,n_layers,n_bnds});
     coef_lw_nc.get_variable(key_species, "key_species", {n_bnds,n_layers,2});
 
-    std::vector<TF> band_lims;
+    std::vector<double> band_lims;
     coef_lw_nc.get_variable(band_lims, "bnd_limits_wavenumber", {n_bnds,2});
 
     std::vector<int> band2gpt;
     coef_lw_nc.get_variable(band2gpt, "bnd_limits_gpt", {n_bnds,2});
 
-    std::vector<TF> press_ref;
+    std::vector<double> press_ref;
     coef_lw_nc.get_variable(press_ref, "press_ref", {n_press});
 
-    std::vector<TF> temp_ref;
+    std::vector<double> temp_ref;
     coef_lw_nc.get_variable(temp_ref, "temp_ref", {n_temps});
 
+    double temp_ref_p;
+    coef_lw_nc.get_variable(temp_ref_p, "absorption_coefficient_ref_P");
+
+    double temp_ref_t;
+    coef_lw_nc.get_variable(temp_ref_t, "absorption_coefficient_ref_T");
+
+    double press_ref_trop;
+    coef_lw_nc.get_variable(press_ref_trop, "press_ref_trop");
+
+    std::vector<double> kminor_lower, kminor_upper;
+    coef_lw_nc.get_variable(kminor_lower, "kminor_lower", {n_temps, n_mixingfracs, n_contributors_lower});
+    coef_lw_nc.get_variable(kminor_upper, "kminor_upper", {n_temps, n_mixingfracs, n_contributors_upper});
+
+    std::vector<std::string> gas_minor, identifier_minor;
+    get_variable_string(gas_minor, "gas_minor", {n_minorabsorbers}, coef_lw_nc, n_char, false);
+    get_variable_string(identifier_minor, "identifier_minor", {n_minorabsorbers}, coef_lw_nc, n_char, false);
+
+    std::vector<std::string> minor_gases_lower, minor_gases_upper;
+    get_variable_string(minor_gases_lower, "minor_gases_lower", {n_minor_absorber_intervals_lower}, coef_lw_nc, n_char, false);
+    get_variable_string(minor_gases_upper, "minor_gases_upper", {n_minor_absorber_intervals_upper}, coef_lw_nc, n_char, false);
+
     /*
-    temp_ref_p        = read_field(ncid, 'absorption_coefficient_ref_P')
-    temp_ref_t        = read_field(ncid, 'absorption_coefficient_ref_T')
-    press_ref_trop    = read_field(ncid, 'press_ref_trop')
-    kminor_lower      = read_field(ncid, 'kminor_lower', &
-        ncontributors_lower, nmixingfracs, ntemps)
-    kminor_upper      = read_field(ncid, 'kminor_upper', &
-        ncontributors_upper, nmixingfracs, ntemps)
-    gas_minor = read_char_vec(ncid, 'gas_minor', nminorabsorbers)
-    identifier_minor = read_char_vec(ncid, 'identifier_minor', nminorabsorbers)
-    minor_gases_lower = read_char_vec(ncid, 'minor_gases_lower', nminor_absorber_intervals_lower)
-    minor_gases_upper = read_char_vec(ncid, 'minor_gases_upper', nminor_absorber_intervals_upper)
     minor_limits_gpt_lower &
                       = int(read_field(ncid, 'minor_limits_gpt_lower', npairs,nminor_absorber_intervals_lower))
     minor_limits_gpt_upper &

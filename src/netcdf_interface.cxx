@@ -325,11 +325,36 @@ namespace
 
 template<typename TF>
 void Netcdf_handle::get_variable(
+        TF& value,
+        const std::string& name)
+{
+    std::string message = "Retrieving from NetCDF (single value): " + name;
+    master.print_message(message);
+
+    int nc_check_code = 0;
+    int var_id;
+
+    if (master.get_mpiid() == 0)
+        nc_check_code = nc_inq_varid(ncid, name.c_str(), &var_id);
+    nc_check(master, nc_check_code);
+
+    if (master.get_mpiid() == 0)
+    {
+        std::vector<TF> values = {value};
+        nc_check_code = nc_get_vara_wrapper(ncid, var_id, {0}, {1}, values);
+        value = values[0];
+    }
+    nc_check(master, nc_check_code);
+    master.broadcast(&value, 1);
+}
+
+template<typename TF>
+void Netcdf_handle::get_variable(
         std::vector<TF>& values,
         const std::string& name,
         const std::vector<int>& i_count)
 {
-    std::string message = "Retrieving from NetCDF: " + name;
+    std::string message = "Retrieving from NetCDF (full array): " + name;
     master.print_message(message);
 
     const std::vector<size_t> i_start_size_t(i_count.size());
@@ -345,8 +370,6 @@ void Netcdf_handle::get_variable(
     int total_count = std::accumulate(i_count.begin(), i_count.end(), 1, std::multiplies<>());
     master.broadcast(&total_count, 1);
     // CvH check needs to be added if total count matches multiplication of all dimensions.
-
-    std::cout << "CvH: " << name << std::endl;
 
     // Check if values has zero length.
     if (values.size() != 0)
@@ -368,7 +391,7 @@ void Netcdf_handle::get_variable(
         const std::vector<int>& i_start,
         const std::vector<int>& i_count)
 {
-    std::string message = "Retrieving from NetCDF: " + name;
+    std::string message = "Retrieving from NetCDF (specified range): " + name;
     master.print_message(message);
 
     const std::vector<size_t> i_start_size_t (i_start.begin(), i_start.end());
@@ -432,10 +455,16 @@ void Netcdf_variable::insert(const double value, const std::vector<int> i_start)
     nc_file.insert(value, var_id, i_start, dim_sizes);
 }
 
+template void Netcdf_handle::get_variable<double>(double&, const std::string&);
+template void Netcdf_handle::get_variable<float> (float &, const std::string&);
+template void Netcdf_handle::get_variable<char>  (char  &, const std::string&);
+template void Netcdf_handle::get_variable<int>   (int   &, const std::string&);
+
 template void Netcdf_handle::get_variable<double>(std::vector<double>&, const std::string&, const std::vector<int>&);
 template void Netcdf_handle::get_variable<float> (std::vector<float> &, const std::string&, const std::vector<int>&);
 template void Netcdf_handle::get_variable<char>  (std::vector<char>  &, const std::string&, const std::vector<int>&);
 template void Netcdf_handle::get_variable<int>   (std::vector<int >  &, const std::string&, const std::vector<int>&);
+
 template void Netcdf_handle::get_variable<double>(std::vector<double>&, const std::string&, const std::vector<int>&, const std::vector<int>&);
 template void Netcdf_handle::get_variable<float> (std::vector<float> &, const std::string&, const std::vector<int>&, const std::vector<int>&);
 template void Netcdf_handle::get_variable<char>  (std::vector<char>  &, const std::string&, const std::vector<int>&, const std::vector<int>&);

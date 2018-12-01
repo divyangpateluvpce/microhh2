@@ -46,6 +46,11 @@ class Netcdf_handle
 
         template<typename T>
         void get_variable(
+                T&,
+                const std::string&);
+
+        template<typename T>
+        void get_variable(
                 std::vector<T>&,
                 const std::string&,
                 const std::vector<int>&);

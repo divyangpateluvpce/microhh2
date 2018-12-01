@@ -158,13 +158,13 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     get_variable_string(gas_names, "gas_names", {n_absorbers}, coef_lw_nc, n_char, true);
 
     std::vector<int> key_species;
-    coef_lw_nc.get_variable(key_species, "key_species", {n_bnds,n_layers,2});
+    coef_lw_nc.get_variable(key_species, "key_species", {n_bnds,n_layers, 2});
 
     std::vector<double> band_lims;
-    coef_lw_nc.get_variable(band_lims, "bnd_limits_wavenumber", {n_bnds,2});
+    coef_lw_nc.get_variable(band_lims, "bnd_limits_wavenumber", {n_bnds, 2});
 
     std::vector<int> band2gpt;
-    coef_lw_nc.get_variable(band2gpt, "bnd_limits_gpt", {n_bnds,2});
+    coef_lw_nc.get_variable(band2gpt, "bnd_limits_gpt", {n_bnds, 2});
 
     std::vector<double> press_ref;
     coef_lw_nc.get_variable(press_ref, "press_ref", {n_press});
@@ -192,6 +192,10 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     std::vector<std::string> minor_gases_lower, minor_gases_upper;
     get_variable_string(minor_gases_lower, "minor_gases_lower", {n_minor_absorber_intervals_lower}, coef_lw_nc, n_char, false);
     get_variable_string(minor_gases_upper, "minor_gases_upper", {n_minor_absorber_intervals_upper}, coef_lw_nc, n_char, false);
+
+    std::vector<int> minor_limits_gpt_lower, minor_limits_gpt_upper;
+    coef_lw_nc.get_variable(minor_limits_gpt_lower, "minor_limits_gpt_lower", {n_minor_absorber_intervals_lower, n_pairs});
+    coef_lw_nc.get_variable(minor_limits_gpt_upper, "minor_limits_gpt_upper", {n_minor_absorber_intervals_upper, n_pairs});
 
     /*
     minor_limits_gpt_lower &

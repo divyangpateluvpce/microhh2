@@ -246,6 +246,25 @@ int Netcdf_handle::get_dimension_size(const std::string& name)
     return dim_len;
 }
 
+bool Netcdf_handle::variable_exists(const std::string& name)
+{
+    int nc_check_code = 0;
+    int var_id;
+
+    try
+    {
+        if (master.get_mpiid() == 0)
+            nc_check_code = nc_inq_varid(ncid, name.c_str(), &var_id);
+        nc_check(master, nc_check_code);
+    }
+    catch (std::runtime_error& e)
+    {
+        return false;
+    }
+
+    return true;
+}
+
 std::map<std::string, int> Netcdf_handle::get_variable_dimensions(const std::string& name)
 {
     int nc_check_code = 0;

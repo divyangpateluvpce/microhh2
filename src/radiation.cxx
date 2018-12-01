@@ -197,35 +197,41 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     coef_lw_nc.get_variable(minor_limits_gpt_lower, "minor_limits_gpt_lower", {n_minor_absorber_intervals_lower, n_pairs});
     coef_lw_nc.get_variable(minor_limits_gpt_upper, "minor_limits_gpt_upper", {n_minor_absorber_intervals_upper, n_pairs});
 
-    /*
-    minor_limits_gpt_lower &
-                      = int(read_field(ncid, 'minor_limits_gpt_lower', npairs,nminor_absorber_intervals_lower))
-    minor_limits_gpt_upper &
-                      = int(read_field(ncid, 'minor_limits_gpt_upper', npairs,nminor_absorber_intervals_upper))
-    minor_scales_with_density_lower &
-                      = read_logical_vec(ncid, 'minor_scales_with_density_lower', nminor_absorber_intervals_lower)
-    minor_scales_with_density_upper &
-                      = read_logical_vec(ncid, 'minor_scales_with_density_upper', nminor_absorber_intervals_upper)
-    scale_by_complement_lower &
-                      = read_logical_vec(ncid, 'scale_by_complement_lower', nminor_absorber_intervals_lower)
-    scale_by_complement_upper &
-                      = read_logical_vec(ncid, 'scale_by_complement_upper', nminor_absorber_intervals_upper)
-    scaling_gas_lower &
-                      = read_char_vec(ncid, 'scaling_gas_lower', nminor_absorber_intervals_lower)
-    scaling_gas_upper &
-                      = read_char_vec(ncid, 'scaling_gas_upper', nminor_absorber_intervals_upper)
-    kminor_start_lower &
-                      = read_field(ncid, 'kminor_start_lower', nminor_absorber_intervals_lower)
-    kminor_start_upper &
-                      = read_field(ncid, 'kminor_start_upper', nminor_absorber_intervals_upper)
-    vmr_ref           = read_field(ncid, 'vmr_ref', nlayers, nextabsorbers, ntemps)
+    std::vector<int> minor_scales_with_density_lower, minor_scales_with_density_upper;
+    coef_lw_nc.get_variable(minor_scales_with_density_lower, "minor_scales_with_density_lower", {n_minor_absorber_intervals_lower});
+    coef_lw_nc.get_variable(minor_scales_with_density_upper, "minor_scales_with_density_upper", {n_minor_absorber_intervals_upper});
 
-    kmajor            = read_field(ncid, 'kmajor',  ngpts, nmixingfracs,  npress+1, ntemps)
-    if(var_exists(ncid, 'rayl_lower')) then
-      rayl_lower = read_field(ncid, 'rayl_lower',   ngpts, nmixingfracs,            ntemps)
-      rayl_upper = read_field(ncid, 'rayl_upper',   ngpts, nmixingfracs,            ntemps)
-    end if
-    */
+    std::vector<int> scale_by_complement_lower, scale_by_complement_upper;
+    coef_lw_nc.get_variable(scale_by_complement_lower, "scale_by_complement_lower", {n_minor_absorber_intervals_lower});
+    coef_lw_nc.get_variable(scale_by_complement_upper, "scale_by_complement_upper", {n_minor_absorber_intervals_upper});
+
+    std::vector<std::string> scaling_gas_lower, scaling_gas_upper;
+    get_variable_string(scaling_gas_lower, "scaling_gas_lower", {n_minor_absorber_intervals_lower}, coef_lw_nc, n_char, false);
+    get_variable_string(scaling_gas_upper, "scaling_gas_upper", {n_minor_absorber_intervals_upper}, coef_lw_nc, n_char, false);
+
+    std::vector<int> kminor_start_lower, kminor_start_upper;
+    coef_lw_nc.get_variable(kminor_start_lower, "kminor_start_lower", {n_minor_absorber_intervals_lower});
+    coef_lw_nc.get_variable(kminor_start_upper, "kminor_start_upper", {n_minor_absorber_intervals_upper});
+
+    std::vector<double> vmr_ref;
+    coef_lw_nc.get_variable(vmr_ref, "vmr_ref", {n_temps, n_extabsorbers, n_layers});
+
+    std::vector<double> kmajor;
+    coef_lw_nc.get_variable(kmajor, "kmajor", {n_temps, n_press+1, n_mixingfracs, n_gpts});
+
+    if (coef_lw_nc.variable_exists("rayl_lower"))
+    {
+        // rayl_lower = read_field(ncid, 'rayl_lower',   ngpts, nmixingfracs,            ntemps)
+        // rayl_upper = read_field(ncid, 'rayl_upper',   ngpts, nmixingfracs,            ntemps)
+    }
+
+    // Is it really LW?
+    if (coef_lw_nc.variable_exists("totplnk"))
+    {
+        std::vector<double> totplnk, plank_fraction;
+        coef_lw_nc.get_variable(totplnk, "totplnk", {n_bnds, n_internal_sourcetemps});
+        coef_lw_nc.get_variable(plank_fraction, "plank_fraction", {n_temps, n_press+1, n_mixingfracs, n_gpts});
+    }
     // END READ K-DISTRIBUTION
 
     throw 666;

@@ -40,6 +40,8 @@ class Netcdf_handle
 
         std::map<std::string, int> get_variable_dimensions(const std::string&);
 
+        bool variable_exists(const std::string&);
+
         Netcdf_variable add_variable(
                 const std::string&,
                 const std::vector<std::string>);

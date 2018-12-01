@@ -129,9 +129,64 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
         boost::trim(gas_name);
         gas_names.push_back(gas_name);
     }
+
+    std::vector<int> key_species;
+    // coef_lw_nc.get_variable(key_species, "key_species", {2,n_layers,n_bnds});
+    coef_lw_nc.get_variable(key_species, "key_species", {n_bnds,n_layers,2});
+
+    std::vector<TF> band_lims;
+    coef_lw_nc.get_variable(band_lims, "bnd_limits_wavenumber", {n_bnds,2});
+
+    std::vector<int> band2gpt;
+    coef_lw_nc.get_variable(band2gpt, "bnd_limits_gpt", {n_bnds,2});
+
+    std::vector<TF> press_ref;
+    coef_lw_nc.get_variable(press_ref, "press_ref", {n_press});
+
+    std::vector<TF> temp_ref;
+    coef_lw_nc.get_variable(temp_ref, "temp_ref", {n_temps});
+
+    /*
+    temp_ref_p        = read_field(ncid, 'absorption_coefficient_ref_P')
+    temp_ref_t        = read_field(ncid, 'absorption_coefficient_ref_T')
+    press_ref_trop    = read_field(ncid, 'press_ref_trop')
+    kminor_lower      = read_field(ncid, 'kminor_lower', &
+        ncontributors_lower, nmixingfracs, ntemps)
+    kminor_upper      = read_field(ncid, 'kminor_upper', &
+        ncontributors_upper, nmixingfracs, ntemps)
+    gas_minor = read_char_vec(ncid, 'gas_minor', nminorabsorbers)
+    identifier_minor = read_char_vec(ncid, 'identifier_minor', nminorabsorbers)
+    minor_gases_lower = read_char_vec(ncid, 'minor_gases_lower', nminor_absorber_intervals_lower)
+    minor_gases_upper = read_char_vec(ncid, 'minor_gases_upper', nminor_absorber_intervals_upper)
+    minor_limits_gpt_lower &
+                      = int(read_field(ncid, 'minor_limits_gpt_lower', npairs,nminor_absorber_intervals_lower))
+    minor_limits_gpt_upper &
+                      = int(read_field(ncid, 'minor_limits_gpt_upper', npairs,nminor_absorber_intervals_upper))
+    minor_scales_with_density_lower &
+                      = read_logical_vec(ncid, 'minor_scales_with_density_lower', nminor_absorber_intervals_lower)
+    minor_scales_with_density_upper &
+                      = read_logical_vec(ncid, 'minor_scales_with_density_upper', nminor_absorber_intervals_upper)
+    scale_by_complement_lower &
+                      = read_logical_vec(ncid, 'scale_by_complement_lower', nminor_absorber_intervals_lower)
+    scale_by_complement_upper &
+                      = read_logical_vec(ncid, 'scale_by_complement_upper', nminor_absorber_intervals_upper)
+    scaling_gas_lower &
+                      = read_char_vec(ncid, 'scaling_gas_lower', nminor_absorber_intervals_lower)
+    scaling_gas_upper &
+                      = read_char_vec(ncid, 'scaling_gas_upper', nminor_absorber_intervals_upper)
+    kminor_start_lower &
+                      = read_field(ncid, 'kminor_start_lower', nminor_absorber_intervals_lower)
+    kminor_start_upper &
+                      = read_field(ncid, 'kminor_start_upper', nminor_absorber_intervals_upper)
+    vmr_ref           = read_field(ncid, 'vmr_ref', nlayers, nextabsorbers, ntemps)
+
+    kmajor            = read_field(ncid, 'kmajor',  ngpts, nmixingfracs,  npress+1, ntemps)
+    if(var_exists(ncid, 'rayl_lower')) then
+      rayl_lower = read_field(ncid, 'rayl_lower',   ngpts, nmixingfracs,            ntemps)
+      rayl_upper = read_field(ncid, 'rayl_upper',   ngpts, nmixingfracs,            ntemps)
+    end if
+    */
     // END READ K-DISTRIBUTION
-    for (const std::string& gas_name : gas_names)
-        std::cout << gas_name << std::endl;
 
     throw 666;
 }

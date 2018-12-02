@@ -112,6 +112,7 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
 
     int layer = group_nc.get_variable_dimensions("pres_layer").at("layer");
     int level = group_nc.get_variable_dimensions("pres_level").at("level");
+    int col = 1;
 
     // Download pressure and temperature data.
     pres_layer.resize(layer);
@@ -235,10 +236,22 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     std::vector<Gas_concs<TF>> gas_conc_array;
     for (const std::string& gas_name : gas_names)
     {
-        if (gas_name == "h2o") {}
-        else if (gas_name == "o3") {}
-        else {}
+        if (gas_name == "h2o" || gas_name == "o3")
+        {
+            std::vector<TF> conc;
+            group_nc.get_variable(conc, gas_name, {layer, col});
+            gas_conc_array.emplace_back(gas_name, conc, layer, col);
+        }
+        else
+        {
+            TF conc;
+            group_nc.get_variable(conc, gas_name);
+            gas_conc_array.emplace_back(gas_name, conc);
+        }
     }
+
+    for (const auto& a : gas_conc_array)
+        a.print_w();
 
     throw 666;
 }

@@ -124,9 +124,6 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     group_nc.get_variable(temp_layer, "temp_layer", {0}, {layer});
     group_nc.get_variable(temp_level, "temp_level", {0}, {level});
 
-    // Read the gas concentrations.
-    std::vector<Gas_concs<TF>> gas_conc_array;
-
     // Download surface boundary conditions for long wave.
     surface_emissivity.resize(1);
     surface_temperature.resize(1);
@@ -225,7 +222,7 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
         // rayl_upper = read_field(ncid, 'rayl_upper',   ngpts, nmixingfracs,            ntemps)
     }
 
-    // Is it really LW?
+    // Is it really LW if so read these variables as well.
     if (coef_lw_nc.variable_exists("totplnk"))
     {
         std::vector<double> totplnk, plank_fraction;
@@ -233,6 +230,15 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
         coef_lw_nc.get_variable(plank_fraction, "plank_fraction", {n_temps, n_press+1, n_mixingfracs, n_gpts});
     }
     // END READ K-DISTRIBUTION
+
+    // Read the gas concentrations.
+    std::vector<Gas_concs<TF>> gas_conc_array;
+    for (const std::string& gas_name : gas_names)
+    {
+        if (gas_name == "h2o") {}
+        else if (gas_name == "o3") {}
+        else {}
+    }
 
     throw 666;
 }

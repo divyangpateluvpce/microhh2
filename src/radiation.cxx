@@ -110,20 +110,23 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
 
     Netcdf_file coef_lw_nc(master, "coefficients_lw.nc", Netcdf_mode::Read);
 
-    int layer = group_nc.get_variable_dimensions("pres_layer").at("layer");
-    int level = group_nc.get_variable_dimensions("pres_level").at("level");
-    int col = 1;
+    int n_lay = group_nc.get_variable_dimensions("pres_layer").at("layer");
+    int n_lev = group_nc.get_variable_dimensions("pres_level").at("level");
+    int n_col = 1;
 
     // Download pressure and temperature data.
-    pres_layer.resize(layer);
-    pres_level.resize(level);
-    temp_layer.resize(layer);
-    temp_level.resize(level);
+    pres_layer.resize(n_lay);
+    pres_level.resize(n_lev);
+    temp_layer.resize(n_lay);
+    temp_level.resize(n_lev);
 
-    group_nc.get_variable(pres_layer, "pres_layer", {0}, {layer});
-    group_nc.get_variable(pres_level, "pres_level", {0}, {level});
-    group_nc.get_variable(temp_layer, "temp_layer", {0}, {layer});
-    group_nc.get_variable(temp_level, "temp_level", {0}, {level});
+    // CvH This is only functional for 1D tests.... ncol needs to be included.
+    group_nc.get_variable(pres_layer, "pres_layer", {0}, {n_lay});
+    group_nc.get_variable(pres_level, "pres_level", {0}, {n_lev});
+    group_nc.get_variable(temp_layer, "temp_layer", {0}, {n_lay});
+    group_nc.get_variable(temp_level, "temp_level", {0}, {n_lev});
+
+    int top_at_1 = pres_layer[0] < pres_layer[n_lay-1];
 
     // Download surface boundary conditions for long wave.
     surface_emissivity.resize(1);
@@ -239,8 +242,8 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
         if (gas_name == "h2o" || gas_name == "o3")
         {
             std::vector<TF> conc;
-            group_nc.get_variable(conc, gas_name, {layer, col});
-            gas_conc_array.emplace_back(gas_name, conc, layer, col);
+            group_nc.get_variable(conc, gas_name, {n_lay, n_col});
+            gas_conc_array.emplace_back(gas_name, conc, n_lay, n_col);
         }
         else
         {
@@ -249,9 +252,6 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
             gas_conc_array.emplace_back(gas_name, conc);
         }
     }
-
-    for (const auto& a : gas_conc_array)
-        a.print_w();
 
     throw 666;
 }

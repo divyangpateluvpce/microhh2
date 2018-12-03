@@ -52,13 +52,5 @@ class Radiation
         Field3d_operators<TF> field3d_operators;
 
         Radiation_type swradiation;
-
-        std::vector<TF> pres_layer;
-        std::vector<TF> temp_layer;
-        std::vector<TF> pres_level;
-        std::vector<TF> temp_level;
-
-        std::vector<TF> surface_emissivity;
-        std::vector<TF> surface_temperature;
 };
 #endif

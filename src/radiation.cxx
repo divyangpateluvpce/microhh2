@@ -115,26 +115,25 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     int n_lev = group_nc.get_variable_dimensions("pres_level").at("level");
     int n_col = 1;
 
-    // Download pressure and temperature data.
-    pres_layer.resize(n_lay);
-    pres_level.resize(n_lev);
-    temp_layer.resize(n_lay);
-    temp_level.resize(n_lev);
+    std::vector<TF> pres_layer;
+    std::vector<TF> temp_layer;
+    std::vector<TF> pres_level;
+    std::vector<TF> temp_level;
 
     // CvH This is only functional for 1D tests.... ncol needs to be included.
-    group_nc.get_variable(pres_layer, "pres_layer", {0}, {n_lay});
-    group_nc.get_variable(pres_level, "pres_level", {0}, {n_lev});
-    group_nc.get_variable(temp_layer, "temp_layer", {0}, {n_lay});
-    group_nc.get_variable(temp_level, "temp_level", {0}, {n_lev});
+    group_nc.get_variable(pres_layer, "pres_layer", {n_lay});
+    group_nc.get_variable(pres_level, "pres_level", {n_lev});
+    group_nc.get_variable(temp_layer, "temp_layer", {n_lay});
+    group_nc.get_variable(temp_level, "temp_level", {n_lev});
 
     int top_at_1 = pres_layer[0] < pres_layer[n_lay-1];
 
     // Download surface boundary conditions for long wave.
-    surface_emissivity.resize(1);
-    surface_temperature.resize(1);
+    std::vector<TF> surface_emissivity;
+    std::vector<TF> surface_temperature;
 
-    group_nc.get_variable(surface_emissivity, "surface_emissivity", {0}, {1});
-    group_nc.get_variable(surface_temperature, "surface_temperature", {0}, {1});
+    group_nc.get_variable(surface_emissivity, "surface_emissivity", {1});
+    group_nc.get_variable(surface_temperature, "surface_temperature", {1});
 
     // READ K-DISTRIBUTION MOVE TO SEPARATE FUNCTION LATER...
     // Read k-distribution information.
@@ -256,6 +255,7 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     }
 
     // Construct the k-distribution.
+    /*
     Gas_optics<TF> kdist(
             available_gases, gas_names, key_species,
             band2gpt, band_lims,
@@ -273,6 +273,7 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
             kminor_start_lower,
             kminor_start_upper,
             totplnk, planck_frac, rayl_lower, rayl_upper);
+            */
 
     throw 666;
 }

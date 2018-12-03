@@ -35,6 +35,7 @@
 #include "netcdf_interface.h"
 
 #include "Gas_concs.h"
+#include "Gas_optics.h"
 
 namespace
 {
@@ -220,6 +221,7 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     std::vector<double> kmajor;
     coef_lw_nc.get_variable(kmajor, "kmajor", {n_temps, n_press+1, n_mixingfracs, n_gpts});
 
+    std::vector<double> rayl_lower, rayl_upper;
     if (coef_lw_nc.variable_exists("rayl_lower"))
     {
         // rayl_lower = read_field(ncid, 'rayl_lower',   ngpts, nmixingfracs,            ntemps)
@@ -227,31 +229,50 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     }
 
     // Is it really LW if so read these variables as well.
+    std::vector<double> totplnk, planck_frac;
     if (coef_lw_nc.variable_exists("totplnk"))
     {
-        std::vector<double> totplnk, plank_fraction;
         coef_lw_nc.get_variable(totplnk, "totplnk", {n_bnds, n_internal_sourcetemps});
-        coef_lw_nc.get_variable(plank_fraction, "plank_fraction", {n_temps, n_press+1, n_mixingfracs, n_gpts});
+        coef_lw_nc.get_variable(planck_frac, "plank_fraction", {n_temps, n_press+1, n_mixingfracs, n_gpts});
     }
     // END READ K-DISTRIBUTION
 
     // Read the gas concentrations.
-    std::vector<Gas_concs<TF>> gas_conc_array;
+    std::vector<Gas_concs<TF>> available_gases;
     for (const std::string& gas_name : gas_names)
     {
         if (gas_name == "h2o" || gas_name == "o3")
         {
             std::vector<TF> conc;
             group_nc.get_variable(conc, gas_name, {n_lay, n_col});
-            gas_conc_array.emplace_back(gas_name, conc, n_lay, n_col);
+            available_gases.emplace_back(gas_name, conc, n_lay, n_col);
         }
         else
         {
             TF conc;
             group_nc.get_variable(conc, gas_name);
-            gas_conc_array.emplace_back(gas_name, conc);
+            available_gases.emplace_back(gas_name, conc);
         }
     }
+
+    // Construct the k-distribution.
+    Gas_optics<TF> kdist(
+            available_gases, gas_names, key_species,
+            band2gpt, band_lims,
+            press_ref, press_ref_trop, temp_ref,
+            temp_ref_p, temp_ref_t, vmr_ref,
+            kmajor, kminor_lower, kminor_upper,
+            gas_minor, identifier_minor,
+            minor_gases_lower, minor_gases_upper,
+            minor_limits_gpt_lower, minor_limits_gpt_upper,
+            minor_scales_with_density_lower,
+            minor_scales_with_density_upper,
+            scaling_gas_lower, scaling_gas_upper,
+            scale_by_complement_lower,
+            scale_by_complement_upper,
+            kminor_start_lower,
+            kminor_start_upper,
+            totplnk, planck_frac, rayl_lower, rayl_upper);
 
     throw 666;
 }

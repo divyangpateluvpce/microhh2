@@ -121,21 +121,20 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     std::vector<TF> temp_level;
 
     // CvH This is only functional for 1D tests.... ncol needs to be included.
-    pres_layer = group_nc.get_variable<TF>("pres_layer", {n_lay});
-    pres_level = group_nc.get_variable<TF>("pres_level", {n_lev});
-    temp_layer = group_nc.get_variable<TF>("temp_layer", {n_lay});
-    temp_level = group_nc.get_variable<TF>("temp_level", {n_lev});
+    pres_layer = group_nc.get_variable<TF>("pres_layer", {n_lay, n_col});
+    pres_level = group_nc.get_variable<TF>("pres_level", {n_lev, n_col});
+    temp_layer = group_nc.get_variable<TF>("temp_layer", {n_lay, n_col});
+    temp_level = group_nc.get_variable<TF>("temp_level", {n_lev, n_col});
 
-    int top_at_1 = pres_layer[0] < pres_layer[n_lay-1];
+    const int top_at_1 = pres_layer[0] < pres_layer[n_lay-1];
 
     // Download surface boundary conditions for long wave.
     std::vector<TF> surface_emissivity;
     std::vector<TF> surface_temperature;
 
-    surface_emissivity  = group_nc.get_variable<TF>("surface_emissivity", {1});
-    surface_temperature = group_nc.get_variable<TF>("surface_temperature", {1});
+    surface_emissivity = group_nc.get_variable<TF>("surface_emissivity", {n_col});
+    surface_temperature = group_nc.get_variable<TF>("surface_temperature", {n_col});
 
-    /*
     // READ K-DISTRIBUTION MOVE TO SEPARATE FUNCTION LATER...
     // Read k-distribution information.
     int n_temps          = coef_lw_nc.get_dimension_size("temperature");
@@ -155,6 +154,7 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     int n_contributors_lower = coef_lw_nc.get_dimension_size("contributors_lower");
     int n_contributors_upper = coef_lw_nc.get_dimension_size("contributors_upper");
 
+    /*
     // Read gas names.
     std::vector<std::string> gas_names;
     get_variable_string(gas_names, "gas_names", {n_absorbers}, coef_lw_nc, n_char, true);

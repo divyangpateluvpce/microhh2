@@ -115,25 +115,16 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     int n_lev = group_nc.get_variable_dimensions("pres_level").at("level");
     int n_col = 1;
 
-    std::vector<TF> pres_layer;
-    std::vector<TF> temp_layer;
-    std::vector<TF> pres_level;
-    std::vector<TF> temp_level;
+    Array_2d<TF> pres_layer(group_nc.get_variable<TF>("pres_layer", {n_lay, n_col}), n_lay, n_col);
+    Array_2d<TF> pres_level(group_nc.get_variable<TF>("pres_level", {n_lev, n_col}), n_lay, n_col);
+    Array_2d<TF> temp_layer(group_nc.get_variable<TF>("temp_layer", {n_lay, n_col}), n_lay, n_col);
+    Array_2d<TF> temp_level(group_nc.get_variable<TF>("temp_level", {n_lev, n_col}), n_lay, n_col);
 
-    // CvH This is only functional for 1D tests.... ncol needs to be included.
-    pres_layer = group_nc.get_variable<TF>("pres_layer", {n_lay, n_col});
-    pres_level = group_nc.get_variable<TF>("pres_level", {n_lev, n_col});
-    temp_layer = group_nc.get_variable<TF>("temp_layer", {n_lay, n_col});
-    temp_level = group_nc.get_variable<TF>("temp_level", {n_lev, n_col});
-
-    const int top_at_1 = pres_layer[0] < pres_layer[n_lay-1];
+    const int top_at_1 = pres_layer(0, 0) < pres_layer(n_lay-1, 0);
 
     // Download surface boundary conditions for long wave.
-    std::vector<TF> surface_emissivity;
-    std::vector<TF> surface_temperature;
-
-    surface_emissivity = group_nc.get_variable<TF>("surface_emissivity", {n_col});
-    surface_temperature = group_nc.get_variable<TF>("surface_temperature", {n_col});
+    Array_1d<TF> surface_emissivity (group_nc.get_variable<TF>("surface_emissivity" , {n_col}), n_col);
+    Array_1d<TF> surface_temperature(group_nc.get_variable<TF>("surface_temperature", {n_col}), n_col);
 
     // READ K-DISTRIBUTION MOVE TO SEPARATE FUNCTION LATER...
     // Read k-distribution information.

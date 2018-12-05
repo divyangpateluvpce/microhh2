@@ -63,6 +63,8 @@ struct Array
         strides(calc_strides<N>(dims))
     {} // CvH Do we need to size check data?
 
+    std::vector<T>& v() { return data; }
+
     void operator=(std::vector<T>&& data)
     {
         // CvH check size.
@@ -82,7 +84,7 @@ struct Array
         return data[i];
     }
 
-    // Fortran-style indexing with []
+    // Fortran-style indexing with ()
     inline T& operator()(const std::array<int, N>& indices)
     {
         const int index = fortran_index<N>(indices, strides);

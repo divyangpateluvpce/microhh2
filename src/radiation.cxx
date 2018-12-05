@@ -120,7 +120,7 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     Array_2d<TF> temp_layer(group_nc.get_variable<TF>("temp_layer", {n_lay, n_col}), n_lay, n_col);
     Array_2d<TF> temp_level(group_nc.get_variable<TF>("temp_level", {n_lev, n_col}), n_lay, n_col);
 
-    const int top_at_1 = pres_layer(0, 0) < pres_layer(n_lay-1, 0);
+    const int top_at_1 = pres_layer(0, 0) < pres_layer.f(n_lay-1, 0);
 
     // Download surface boundary conditions for long wave.
     Array_1d<TF> surface_emissivity (group_nc.get_variable<TF>("surface_emissivity" , {n_col}), n_col);

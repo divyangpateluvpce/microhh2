@@ -24,9 +24,9 @@ class Optical_props_arry : public Optical_props
     public:
         Optical_props_arry() {};
         virtual ~Optical_props_arry() {};
-        virtual Array_3d<TF>& get_tau() = 0;
-        virtual Array_3d<TF>& get_ssa() = 0;
-        virtual Array_3d<TF>& get_g() = 0;
+        virtual Array<TF,3>& get_tau() = 0;
+        virtual Array<TF,3>& get_ssa() = 0;
+        virtual Array<TF,3>& get_g() = 0;
 
         // virtual void get_subset(const int, const int, std::unique_ptr<Optical_props_arry>&) = 0;
 };
@@ -63,7 +63,7 @@ class Optical_props_1scl : public Optical_props_arry<TF>
         // Initializer constructor.
         Optical_props_1scl(
                 const int ncol, const int nlay, const int ngpt,
-                Array_3d<TF>&& tau,
+                Array<TF,3>&& tau,
                 const std::string name="") :
             tau_(std::move(tau)),
             name_(name)
@@ -103,12 +103,12 @@ class Optical_props_1scl : public Optical_props_arry<TF>
         int get_ngpt() const { return tau_.dim3(); }
         std::string get_name() const { return name_; }
 
-        Array_3d<TF>& get_tau() { return tau_; }
-        Array_3d<TF>& get_ssa() { throw std::runtime_error("Not available in this class"); }
-        Array_3d<TF>& get_g  () { throw std::runtime_error("Not available in this class"); }
+        Array<TF,3>& get_tau() { return tau_; }
+        Array<TF,3>& get_ssa() { throw std::runtime_error("Not available in this class"); }
+        Array<TF,3>& get_g  () { throw std::runtime_error("Not available in this class"); }
 
     private:
-        Array_3d<TF> tau_;
+        Array<TF,3> tau_;
         const std::string name_;
 };
 #endif

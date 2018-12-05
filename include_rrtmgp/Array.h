@@ -1,234 +1,79 @@
 #ifndef ARRAY_H
 #define ARRAY_H
 
+#include <array>
 #include <vector>
-#include <algorithm>
+#include <iostream>
 
-template<typename T>
-class Array_1d
+template<int N>
+inline std::array<int, N> calc_strides(const std::array<int, N>& dims)
 {
-    public:
-        Array_1d() : itot_(0) {};
+    std::array<int, N> strides;
+    strides[0] = 1;
+    for(int i=1; i<N; ++i)
+        strides[i] = strides[i-1]*dims[i-1];
 
-        Array_1d(const int itot) :
-            itot_(itot),
-            data_(itot) {}
-
-        Array_1d(std::vector<T>&& data, const int itot) :
-            itot_(itot),
-            data_(data) {}
-
-        Array_1d(Array_1d&&) = default;
-        Array_1d& operator=(Array_1d&&) = default;
-
-        // Fortran indexing.
-        T& f(const int i) { return data_[i-1]; }
-        const T f(const int i) const { return data_[i-1]; }
-
-        T dim1() const { return itot_; }
-
-        void set_zero()
-        {
-            std::fill(data_.begin(), data_.end(), 0.);
-        }
-
-        void resize(const int itot_new)
-        { 
-            data_.resize(itot_new);
-            itot_ = itot_new;
-        }
-
-        T max() const
-        {
-            return *std::max_element(std::begin(data_), std::end(data_));
-        }
-
-        T min() const
-        {
-            return *std::min_element(std::begin(data_), std::end(data_));
-        }
-
-        T* get_ptr()
-        {
-            return data_.data();
-        }
-
-    private:
-        int itot_;
-        std::vector<T> data_;
-};
-
-template<typename T>
-class Array_2d
-{
-    public:
-        Array_2d() : itot_(0), jtot_(0) {};
-
-        // Initialization goes in C order, fastest goes last!
-        Array_2d(const int jtot, const int itot) :
-            itot_(itot),
-            jtot_(jtot),
-            data_(itot*jtot) {}
-
-        Array_2d(std::vector<T>&& data, const int jtot, const int itot) :
-            itot_(itot),
-            jtot_(jtot),
-            data_(data) {}
-
-        Array_2d(Array_2d&&) = default;
-        Array_2d& operator=(Array_2d&&) = default;
-
-        // C-style indexing.
-        T& operator()(const int j, const int i)
-        {
-            const int ij = i + j*itot_;
-            return data_[ij];
-        }
-
-        const T operator()(const int j, const int i) const
-        {
-            const int ij = i + j*itot_;
-            return data_[ij];
-        }
-
-        // Fortran indexing.
-        T& f(const int i, const int j)
-        {
-            const int ij = (i-1) + (j-1)*itot_;
-            return data_[ij];
-        }
-
-        const T f(const int i, const int j) const
-        {
-            const int ij = (i-1) + (j-1)*itot_;
-            return data_[ij];
-        }
-
-        T dim1() const { return itot_; }
-        T dim2() const { return jtot_; }
-
-        void set_zero()
-        {
-            std::fill(data_.begin(), data_.end(), 0.);
-        }
-
-        T max() const
-        {
-            return *std::max_element(std::begin(data_), std::end(data_));
-        }
-
-        T min() const
-        {
-            return *std::min_element(std::begin(data_), std::end(data_));
-        }
-
-        T* get_ptr()
-        {
-            return data_.data();
-        }
-
-    private:
-        int itot_;
-        int jtot_;
-        std::vector<T> data_;
-};
-
-template<typename T>
-class Array_3d
-{
-    public:
-        Array_3d() : itot_(0), jtot_(0), ktot_(0) {};
-
-        Array_3d(const int ktot, const int jtot, const int itot) :
-            itot_(itot),
-            jtot_(jtot),
-            ktot_(ktot),
-            data_(itot*jtot*ktot) {}
-
-        Array_3d(std::vector<T>&& data, const int ktot, const int jtot, const int itot) :
-            itot_(itot),
-            jtot_(jtot),
-            ktot_(ktot),
-            data_(data) {}
-
-        Array_3d(Array_3d&&) = default;
-        Array_3d& operator=(Array_3d&&) = default;
-
-        // C-indexing.
-        T& operator()(const int k, const int j, const int i)
-        {
-            const int ij = i + j*itot_ + k*itot_*jtot_;
-            return data_[ij];
-        }
-
-        const T operator()(const int k, const int j, const int i) const
-        {
-            const int ij = i + j*itot_ + k*itot_*jtot_;
-            return data_[ij];
-        }
-
-        // Fortran indexing.
-        T& f(const int i, const int j, const int k)
-        {
-            const int ij = (i-1) + (j-1)*itot_ + (k-1)*itot_*jtot_;
-            return data_[ij];
-        }
-
-        const T f(const int i, const int j, const int k) const
-        {
-            const int ij = (i-1) + (j-1)*itot_ + (k-1)*itot_*jtot_;
-            return data_[ij];
-        }
-
-        T dim1() const { return itot_; }
-        T dim2() const { return jtot_; }
-        T dim3() const { return ktot_; }
-
-        void set_zero()
-        {
-            std::fill(data_.begin(), data_.end(), 0.);
-        }
-
-        T max() const
-        {
-            return *std::max_element(std::begin(data_), std::end(data_));
-        }
-
-        T min() const
-        {
-            return *std::min_element(std::begin(data_), std::end(data_));
-        }
-
-        T* get_ptr()
-        {
-            return data_.data();
-        }
-
-    private:
-        int itot_;
-        int jtot_;
-        int ktot_;
-        std::vector<T> data_;
-};
-
-template<typename T_a, typename T_b>
-bool has_same_dims(const Array_1d<T_a>& a, const Array_1d<T_b>& b)
-{
-    return ( a.dim1() == b.dim1() );
+    return strides;
 }
 
-template<typename T_a, typename T_b>
-bool has_same_dims(const Array_2d<T_a>& a, const Array_2d<T_b>& b)
+template<int N>
+inline int dot(const std::array<int, N>& left, const std::array<int, N>& right)
 {
-    return ( ( a.dim1() == b.dim1() ) &&
-             ( a.dim2() == b.dim2() ) );
+    int sum = 0;
+    for (int i=0; i<N; ++i)
+        sum += left[i]*right[i];
+
+    return sum;
 }
 
-template<typename T_a, typename T_b>
-bool has_same_dims(const Array_3d<T_a>& a, const Array_3d<T_b>& b)
+template<int N>
+inline int product(const std::array<int, N>& array)
 {
-    return ( ( a.dim1() == b.dim1() ) &&
-             ( a.dim2() == b.dim2() ) &&
-             ( a.dim3() == b.dim3() ) );
+    int product = array[0];
+    for (int i=1; i<N; ++i)
+        product *= array[i];
+
+    return product;
 }
+
+template<typename T, int N>
+struct Array
+{
+    Array(const std::array<int, N>& dims) :
+        dims(dims),
+        ncells(product<N>(dims)),
+        data(ncells),
+        strides(calc_strides<N>(dims))
+    {}
+
+    Array(std::vector<T>&& data, const std::array<int, N>& dims) :
+        dims(dims),
+        ncells(product<N>(dims)),
+        data(data),
+        strides(calc_strides<N>(dims))
+    {} // CvH Do we need to size check data?
+
+    void operator=(std::vector<T>&& data)
+    {
+        // CvH check size.
+        this->data = data;
+    }
+
+    inline T& operator()(const std::array<int, N>& indices)
+    {
+        const int index = dot<N>(indices, strides);
+        return data[index];
+    }
+
+    inline T operator()(const std::array<int, N>& index) const
+    {
+        const int i = dot<N>(index, strides);
+        return data[i];
+    }
+
+    const std::array<int, N> dims;
+    const int ncells;
+    std::vector<T> data;
+    const std::array<int, N> strides;
+};
 #endif

@@ -34,7 +34,7 @@
 #include "input.h"
 #include "netcdf_interface.h"
 
-#include "Array_proto.h"
+#include "Array.h"
 #include "Gas_concs.h"
 #include "Gas_optics.h"
 

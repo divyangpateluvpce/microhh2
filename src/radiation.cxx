@@ -119,16 +119,16 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     int n_lev = group_nc.get_variable_dimensions("pres_level").at("level");
     int n_col = 1;
 
-    Array<TF,2> pres_layer(group_nc.get_variable<TF>("pres_layer", {n_lay, n_col}), {n_lay, n_col});
-    Array<TF,2> pres_level(group_nc.get_variable<TF>("pres_level", {n_lev, n_col}), {n_lay, n_col});
-    Array<TF,2> temp_layer(group_nc.get_variable<TF>("temp_layer", {n_lay, n_col}), {n_lay, n_col});
-    Array<TF,2> temp_level(group_nc.get_variable<TF>("temp_level", {n_lev, n_col}), {n_lay, n_col});
+    Array<double,2> pres_layer(group_nc.get_variable<double>("pres_layer", {n_lay, n_col}), {n_lay, n_col});
+    Array<double,2> pres_level(group_nc.get_variable<double>("pres_level", {n_lev, n_col}), {n_lay, n_col});
+    Array<double,2> temp_layer(group_nc.get_variable<double>("temp_layer", {n_lay, n_col}), {n_lay, n_col});
+    Array<double,2> temp_level(group_nc.get_variable<double>("temp_level", {n_lev, n_col}), {n_lay, n_col});
 
     const int top_at_1 = pres_layer({0, 0}) < pres_layer({n_lay-1, 0});
 
     // Download surface boundary conditions for long wave.
-    Array<TF,1> surface_emissivity (group_nc.get_variable<TF>("surface_emissivity" , {n_col}), {n_col});
-    Array<TF,1> surface_temperature(group_nc.get_variable<TF>("surface_temperature", {n_col}), {n_col});
+    Array<double,1> surface_emissivity (group_nc.get_variable<double>("surface_emissivity" , {n_col}), {n_col});
+    Array<double,1> surface_temperature(group_nc.get_variable<double>("surface_temperature", {n_col}), {n_col});
 
     // READ K-DISTRIBUTION MOVE TO SEPARATE FUNCTION LATER...
     // Read k-distribution information.
@@ -219,14 +219,9 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
         }
         else
         {
-            TF conc = group_nc.get_variable<TF>(gas_name);
+            double conc = group_nc.get_variable<double>(gas_name);
             available_gases.emplace_back(gas_name, conc);
         }
-    }
-
-    for (auto g : available_gases)
-    {
-        g.print_w();
     }
 
     // Construct the k-distribution.

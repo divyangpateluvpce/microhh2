@@ -46,6 +46,22 @@ inline int product(const std::array<int, N>& array)
     return product;
 }
 
+template<typename T>
+struct Array_iterator
+{
+    Array_iterator(const std::vector<T>& data, const int n) : data(data), n(n) {}
+    Array_iterator operator++() { ++n; }
+    T operator*() const { return data[n]; }
+    const std::vector<T>& data;
+    int n;
+};
+
+template<typename T>
+bool operator!=(const Array_iterator<T>& left, const Array_iterator<T>& right)
+{
+    return left.n != right.n;
+}
+
 template<typename T, int N>
 struct Array
 {
@@ -63,9 +79,12 @@ struct Array
         strides(calc_strides<N>(dims))
     {} // CvH Do we need to size check data?
 
-    std::vector<T>& v() { return data; }
+    inline Array_iterator<T> begin() { return Array_iterator<T>(data, 0); }
+    inline Array_iterator<T> end()   { return Array_iterator<T>(data, ncells); }
 
-    void operator=(std::vector<T>&& data)
+    inline std::vector<T>& v() { return data; }
+
+    inline void operator=(std::vector<T>&& data)
     {
         // CvH check size.
         this->data = data;

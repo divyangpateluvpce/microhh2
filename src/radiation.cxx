@@ -120,7 +120,7 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     Array_2d<TF> temp_layer(group_nc.get_variable<TF>("temp_layer", {n_lay, n_col}), n_lay, n_col);
     Array_2d<TF> temp_level(group_nc.get_variable<TF>("temp_level", {n_lev, n_col}), n_lay, n_col);
 
-    const int top_at_1 = pres_layer(0, 0) < pres_layer.f(n_lay-1, 0);
+    const int top_at_1 = pres_layer(0, 0) < pres_layer(n_lay-1, 0);
 
     // Download surface boundary conditions for long wave.
     Array_1d<TF> surface_emissivity (group_nc.get_variable<TF>("surface_emissivity" , {n_col}), n_col);
@@ -145,38 +145,22 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     int n_contributors_lower = coef_lw_nc.get_dimension_size("contributors_lower");
     int n_contributors_upper = coef_lw_nc.get_dimension_size("contributors_upper");
 
-    /*
     // Read gas names.
     std::vector<std::string> gas_names;
     get_variable_string(gas_names, "gas_names", {n_absorbers}, coef_lw_nc, n_char, true);
 
-    std::vector<int> key_species;
-    coef_lw_nc.get_variable(key_species, "key_species", {n_bnds,n_layers, 2});
+    Array_3d<int> key_species(coef_lw_nc.get_variable<int>("key_species", {n_bnds, n_layers, 2}), n_bnds, n_layers, 2);
+    Array_2d<double> band_lims(coef_lw_nc.get_variable<double>("bnd_limits_wavenumber", {n_bnds, 2}), n_bnds, 2);
+    Array_2d<int> band2gpt(coef_lw_nc.get_variable<int>("bnd_limits_gpt", {n_bnds, 2}), n_bnds, 2);
+    Array_1d<double> press_ref(coef_lw_nc.get_variable<double>("press_ref", {n_press}), n_press);
+    Array_1d<double> temp_ref(coef_lw_nc.get_variable<double>("temp_ref", {n_temps}), n_temps);
 
-    std::vector<double> band_lims;
-    coef_lw_nc.get_variable(band_lims, "bnd_limits_wavenumber", {n_bnds, 2});
+    double temp_ref_p = coef_lw_nc.get_variable<double>("absorption_coefficient_ref_P");
+    double temp_ref_t = coef_lw_nc.get_variable<double>("absorption_coefficient_ref_T");
+    double press_ref_trop = coef_lw_nc.get_variable<double>("press_ref_trop");
 
-    std::vector<int> band2gpt;
-    coef_lw_nc.get_variable(band2gpt, "bnd_limits_gpt", {n_bnds, 2});
-
-    std::vector<double> press_ref;
-    coef_lw_nc.get_variable(press_ref, "press_ref", {n_press});
-
-    std::vector<double> temp_ref;
-    coef_lw_nc.get_variable(temp_ref, "temp_ref", {n_temps});
-
-    double temp_ref_p;
-    coef_lw_nc.get_variable(temp_ref_p, "absorption_coefficient_ref_P");
-
-    double temp_ref_t;
-    coef_lw_nc.get_variable(temp_ref_t, "absorption_coefficient_ref_T");
-
-    double press_ref_trop;
-    coef_lw_nc.get_variable(press_ref_trop, "press_ref_trop");
-
-    std::vector<double> kminor_lower, kminor_upper;
-    coef_lw_nc.get_variable(kminor_lower, "kminor_lower", {n_temps, n_mixingfracs, n_contributors_lower});
-    coef_lw_nc.get_variable(kminor_upper, "kminor_upper", {n_temps, n_mixingfracs, n_contributors_upper});
+    Array_3d<double> kminor_lower(coef_lw_nc.get_variable<double>("kminor_lower", {n_temps, n_mixingfracs, n_contributors_lower}), n_temps, n_mixingfracs, n_contributors_lower);
+    Array_3d<double> kminor_upper(coef_lw_nc.get_variable<double>("kminor_upper", {n_temps, n_mixingfracs, n_contributors_upper}), n_temps, n_mixingfracs, n_contributors_lower);
 
     std::vector<std::string> gas_minor, identifier_minor;
     get_variable_string(gas_minor, "gas_minor", {n_minorabsorbers}, coef_lw_nc, n_char, false);
@@ -186,10 +170,10 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     get_variable_string(minor_gases_lower, "minor_gases_lower", {n_minor_absorber_intervals_lower}, coef_lw_nc, n_char, false);
     get_variable_string(minor_gases_upper, "minor_gases_upper", {n_minor_absorber_intervals_upper}, coef_lw_nc, n_char, false);
 
-    std::vector<int> minor_limits_gpt_lower, minor_limits_gpt_upper;
-    coef_lw_nc.get_variable(minor_limits_gpt_lower, "minor_limits_gpt_lower", {n_minor_absorber_intervals_lower, n_pairs});
-    coef_lw_nc.get_variable(minor_limits_gpt_upper, "minor_limits_gpt_upper", {n_minor_absorber_intervals_upper, n_pairs});
+    Array_2d<int> minor_limits_gpt_lower(coef_lw_nc.get_variable<int>("minor_limits_gpt_lower", {n_minor_absorber_intervals_lower, n_pairs}), n_minor_absorber_intervals_lower, n_pairs);
+    Array_2d<int> minor_limits_gpt_upper(coef_lw_nc.get_variable<int>("minor_limits_gpt_upper", {n_minor_absorber_intervals_upper, n_pairs}), n_minor_absorber_intervals_upper, n_pairs);
 
+    /*
     std::vector<int> minor_scales_with_density_lower, minor_scales_with_density_upper;
     coef_lw_nc.get_variable(minor_scales_with_density_lower, "minor_scales_with_density_lower", {n_minor_absorber_intervals_lower});
     coef_lw_nc.get_variable(minor_scales_with_density_upper, "minor_scales_with_density_upper", {n_minor_absorber_intervals_upper});

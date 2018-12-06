@@ -225,7 +225,7 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     }
 
     for (auto g : gas_names)
-        std::cout << "CvH: " << g << std::endl;
+        std::cout << "CvH: " << g.first << " = " << g.second << std::endl;
 
     // Construct the k-distribution.
     /*

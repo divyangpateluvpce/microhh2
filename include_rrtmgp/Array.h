@@ -52,7 +52,7 @@ class Array_iterator
     public:
         Array_iterator(const std::vector<T>& data, const int n) : data(data), n(n) {}
         Array_iterator operator++() { ++n; }
-        T operator*() const { return data[n]; }
+        std::pair<int, T> operator*() const { return std::make_pair(n, data[n]); }
 
     private:
         const std::vector<T>& data;

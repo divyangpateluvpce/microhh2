@@ -47,78 +47,81 @@ inline int product(const std::array<int, N>& array)
 }
 
 template<typename T>
-struct Array_iterator
+class Array_iterator
 {
-    Array_iterator(const std::vector<T>& data, const int n) : data(data), n(n) {}
-    Array_iterator operator++() { ++n; }
-    T operator*() const { return data[n]; }
-    const std::vector<T>& data;
-    int n;
+    public:
+        Array_iterator(const std::vector<T>& data, const int n) : data(data), n(n) {}
+        Array_iterator operator++() { ++n; }
+        T operator*() const { return data[n]; }
+
+    private:
+        const std::vector<T>& data;
+        int n;
+
+    friend bool operator!=(const Array_iterator<T>& left, const Array_iterator<T>& right) { return left.n != right.n; }
 };
 
-template<typename T>
-bool operator!=(const Array_iterator<T>& left, const Array_iterator<T>& right)
-{
-    return left.n != right.n;
-}
 
 template<typename T, int N>
-struct Array
+class Array
 {
-    Array(const std::array<int, N>& dims) :
-        dims(dims),
-        ncells(product<N>(dims)),
-        data(ncells),
-        strides(calc_strides<N>(dims))
-    {}
+    public:
+        Array(const std::array<int, N>& dims) :
+            dims(dims),
+            ncells(product<N>(dims)),
+            data(ncells),
+            strides(calc_strides<N>(dims))
+        {}
 
-    Array(std::vector<T>&& data, const std::array<int, N>& dims) :
-        dims(dims),
-        ncells(product<N>(dims)),
-        data(data),
-        strides(calc_strides<N>(dims))
-    {} // CvH Do we need to size check data?
+        Array(std::vector<T>&& data, const std::array<int, N>& dims) :
+            dims(dims),
+            ncells(product<N>(dims)),
+            data(data),
+            strides(calc_strides<N>(dims))
+        {} // CvH Do we need to size check data?
 
-    inline Array_iterator<T> begin() { return Array_iterator<T>(data, 0); }
-    inline Array_iterator<T> end()   { return Array_iterator<T>(data, ncells); }
+        inline std::vector<T>& v() { return data; }
 
-    inline std::vector<T>& v() { return data; }
+        inline void operator=(std::vector<T>&& data)
+        {
+            // CvH check size.
+            this->data = data;
+        }
 
-    inline void operator=(std::vector<T>&& data)
-    {
-        // CvH check size.
-        this->data = data;
-    }
+        // C++-style indexing with []
+        inline T& operator[](const std::array<int, N>& indices)
+        {
+            const int index = c_index<N>(indices, strides);
+            return data[index];
+        }
 
-    // C++-style indexing with []
-    inline T& operator[](const std::array<int, N>& indices)
-    {
-        const int index = c_index<N>(indices, strides);
-        return data[index];
-    }
+        inline T operator[](const std::array<int, N>& index) const
+        {
+            const int i = c_index<N>(index, strides);
+            return data[i];
+        }
 
-    inline T operator[](const std::array<int, N>& index) const
-    {
-        const int i = c_index<N>(index, strides);
-        return data[i];
-    }
+        // Fortran-style indexing with ()
+        inline T& operator()(const std::array<int, N>& indices)
+        {
+            const int index = fortran_index<N>(indices, strides);
+            return data[index];
+        }
 
-    // Fortran-style indexing with ()
-    inline T& operator()(const std::array<int, N>& indices)
-    {
-        const int index = fortran_index<N>(indices, strides);
-        return data[index];
-    }
+        inline T operator()(const std::array<int, N>& index) const
+        {
+            const int i = fortran_index<N>(index, strides);
+            return data[i];
+        }
 
-    inline T operator()(const std::array<int, N>& index) const
-    {
-        const int i = fortran_index<N>(index, strides);
-        return data[i];
-    }
+        inline Array_iterator<T> begin() { return Array_iterator<T>(data, 0); }
+        inline Array_iterator<T> end()   { return Array_iterator<T>(data, ncells); }
 
-    const std::array<int, N> dims;
-    const int ncells;
-    std::vector<T> data;
-    const std::array<int, N> strides;
+        const std::array<int, N> dims;
+
+    private:
+        const int ncells;
+        std::vector<T> data;
+        const std::array<int, N> strides;
 };
 #endif

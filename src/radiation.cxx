@@ -212,7 +212,8 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
 
     // Read the gas concentrations.
     std::vector<Gas_concs<double>> available_gases;
-    for (int i=0; i<gas_names.dims[0]; ++i)
+
+    for (int i=0; i<gas_names.get_dims()[0]; ++i)
     {
         const std::string& gas_name = gas_names[{i}];
         if (gas_name == "h2o" || gas_name == "o3")
@@ -233,7 +234,7 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     // Construct the k-distribution.
     Gas_optics<TF> kdist(
             available_gases,
-            gas_names, key_species,
+            std::move(gas_names), key_species,
             band2gpt, band_lims,
             press_ref, press_ref_trop, temp_ref,
             temp_ref_p, temp_ref_t, vmr_ref,

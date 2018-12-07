@@ -51,7 +51,11 @@ class Array_iterator
 {
     public:
         Array_iterator(const std::vector<T>& data, const int n) : data(data), n(n) {}
-        Array_iterator operator++() { ++n; }
+        Array_iterator& operator++()
+        {
+            ++n;
+            return *this;
+        }
         std::pair<int, T> operator*() const { return std::make_pair(n, data[n]); }
 
     private:
@@ -82,7 +86,12 @@ class Array
 
         // Define the default copy and move constructor.
         Array(Array<T,N>&) = default;
-        Array(Array<T,N>&&) = default;
+        Array(Array<T,N>&& array) :
+            dims(std::exchange(array.dims, {})),
+            ncells(std::exchange(array.ncells, 0)),
+            data(std::move(array.data)),
+            strides(std::exchange(array.strides, {}))
+        {}
 
         inline std::vector<T>& v() { return data; }
 
@@ -121,11 +130,12 @@ class Array
         inline Array_iterator<T> begin() { return Array_iterator<T>(data, 0); }
         inline Array_iterator<T> end()   { return Array_iterator<T>(data, ncells); }
 
-        const std::array<int, N> dims;
+        const std::array<int, N>& get_dims() const { return dims; }
 
     private:
-        const int ncells;
+        std::array<int, N> dims;
+        int ncells;
         std::vector<T> data;
-        const std::array<int, N> strides;
+        std::array<int, N> strides;
 };
 #endif

@@ -80,6 +80,10 @@ class Array
             strides(calc_strides<N>(dims))
         {} // CvH Do we need to size check data?
 
+        // Define the default copy and move constructor.
+        Array(Array<T,N>&) = default;
+        Array(Array<T,N>&&) = default;
+
         inline std::vector<T>& v() { return data; }
 
         inline void operator=(std::vector<T>&& data)

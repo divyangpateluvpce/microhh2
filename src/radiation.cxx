@@ -190,6 +190,9 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
 
     Array<double,4> kmajor(coef_lw_nc.get_variable<double>("kmajor", {n_temps, n_press+1, n_mixingfracs, n_gpts}), {n_temps, n_press+1, n_mixingfracs, n_gpts});
 
+    Array<double,3> rayl_lower({n_temps, n_mixingfracs, n_gpts});
+    Array<double,3> rayl_upper({n_temps, n_mixingfracs, n_gpts});
+
     if (coef_lw_nc.variable_exists("rayl_lower"))
     {
         // rayl_lower = read_field(ncid, 'rayl_lower',   ngpts, nmixingfracs,            ntemps)
@@ -228,9 +231,9 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
         std::cout << "CvH: " << g.first << " = " << g.second << std::endl;
 
     // Construct the k-distribution.
-    /*
     Gas_optics<TF> kdist(
-            available_gases, gas_names, key_species,
+            available_gases,
+            gas_names, key_species,
             band2gpt, band_lims,
             press_ref, press_ref_trop, temp_ref,
             temp_ref_p, temp_ref_t, vmr_ref,
@@ -246,7 +249,9 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
             kminor_start_lower,
             kminor_start_upper,
             totplnk, planck_frac, rayl_lower, rayl_upper);
-            */
+
+    for (auto g : gas_names)
+        std::cout << "CvH: " << g.first << " = " << g.second << std::endl;
 
     throw 666;
 }
@@ -259,4 +264,4 @@ void Radiation<TF>::exec(Thermo<TF>& thermo)
 }
 
 template class Radiation<double>;
-template class Radiation<float>;
+// template class Radiation<float>;

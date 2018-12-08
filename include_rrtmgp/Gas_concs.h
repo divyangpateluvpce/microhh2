@@ -18,6 +18,8 @@ class Gas_concs
                 std::cout << v << std::endl;
         }
 
+        std::string get_name() const { return name; }
+
     private:
         const std::string name;
         const int ncol;

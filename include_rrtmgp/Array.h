@@ -80,6 +80,13 @@ class Array
             strides(calc_strides<N>(dims))
         {}
 
+        Array(std::vector<T>& data, const std::array<int, N>& dims) :
+            dims(dims),
+            ncells(product<N>(dims)),
+            data(data),
+            strides(calc_strides<N>(dims))
+        {} // CvH Do we need to size check data?
+
         Array(std::vector<T>&& data, const std::array<int, N>& dims) :
             dims(dims),
             ncells(product<N>(dims)),
@@ -89,6 +96,7 @@ class Array
 
         // Define the default copy and move constructor.
         Array(Array<T,N>&) = default;
+        Array<T,N>& operator=(const Array<T,N>&) = default;
 
         Array(Array<T,N>&& array) :
             dims(std::exchange(array.dims, {})),
@@ -134,7 +142,7 @@ class Array
         inline Array_iterator<T> begin() { return Array_iterator<T>(data, 0); }
         inline Array_iterator<T> end()   { return Array_iterator<T>(data, ncells); }
 
-        const std::array<int, N>& get_dims() const { return dims; }
+        inline const std::array<int, N>& get_dims() const { return dims; }
 
     private:
         std::array<int, N> dims;

@@ -70,6 +70,9 @@ template<typename T, int N>
 class Array
 {
     public:
+        Array() :
+            ncells(0)
+        {}
         Array(const std::array<int, N>& dims) :
             dims(dims),
             ncells(product<N>(dims)),
@@ -86,6 +89,7 @@ class Array
 
         // Define the default copy and move constructor.
         Array(Array<T,N>&) = default;
+
         Array(Array<T,N>&& array) :
             dims(std::exchange(array.dims, {})),
             ncells(std::exchange(array.ncells, 0)),

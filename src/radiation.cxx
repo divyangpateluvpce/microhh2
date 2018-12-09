@@ -218,7 +218,7 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
         const std::string& gas_name = gas_names({i});
         if (gas_name == "h2o" || gas_name == "o3")
         {
-            Array<double,2> conc(group_nc.get_variable<double>(gas_name, {n_lay, n_col}), {n_lay, n_col});
+            Array<double,2> conc(group_nc.get_variable<double>(gas_name, {n_lay, n_col}), {n_col, n_lay});
             available_gases.emplace_back(gas_name, conc.v(), n_lay, n_col);
         }
         else

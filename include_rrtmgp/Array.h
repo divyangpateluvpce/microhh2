@@ -70,21 +70,24 @@ class Array
             dims(dims),
             ncells(product<N>(dims)),
             data(ncells),
-            strides(calc_strides<N>(dims))
+            strides(calc_strides<N>(dims)),
+            offsets({})
         {}
 
         Array(std::vector<T>& data, const std::array<int, N>& dims) :
             dims(dims),
             ncells(product<N>(dims)),
             data(data),
-            strides(calc_strides<N>(dims))
+            strides(calc_strides<N>(dims)),
+            offsets({})
         {} // CvH Do we need to size check data?
 
         Array(std::vector<T>&& data, const std::array<int, N>& dims) :
             dims(dims),
             ncells(product<N>(dims)),
             data(data),
-            strides(calc_strides<N>(dims))
+            strides(calc_strides<N>(dims)),
+            offsets({})
         {} // CvH Do we need to size check data?
 
         // Define the default copy and move constructor.

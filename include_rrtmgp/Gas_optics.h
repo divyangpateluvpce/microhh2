@@ -74,6 +74,12 @@ class Gas_optics : public Optical_props<TF>
         Array<int,1> kminor_start_lower;
         Array<int,1> kminor_start_upper;
 
+        Array<int,1> idx_minor_lower;
+        Array<int,1> idx_minor_upper;
+
+        Array<int,1> idx_minor_scaling_lower;
+        Array<int,1> idx_minor_scaling_upper;
+
         void init_abs_coeffs(
                 std::vector<Gas_concs<TF>>& available_gases,
                 Array<std::string,1>& gas_names,
@@ -188,6 +194,40 @@ namespace
         endif
       enddo
     endif*/
+
+    void create_idx_minor(
+            const Array<std::string,1>& gas_names,
+            const Array<std::string,1>& gas_minor,
+            const Array<std::string,1>& identifier_minor,
+            const Array<std::string,1>& minor_gases_atm,
+            Array<int,1> idx_minor_atm)
+    {
+        Array<int,1> idx_minor_atm_out({minor_gases_atm.dim(1)});
+
+        for (int imnr=1; imnr<=minor_gases_atm.dim(1); ++imnr)
+        {
+            // Find identifying string for minor species in list of possible identifiers (e.g. h2o_slf)
+            const int idx_mnr = identifier_minor.find_indices(minor_gases_atm({imnr}))[0];
+
+            // Find name of gas associated with minor species identifier (e.g. h2o)
+            idx_minor_atm_out({imnr}) = gas_names.find_indices(gas_minor({idx_mnr}))[0];
+        }
+
+        idx_minor_atm = idx_minor_atm_out;
+    }
+
+    void create_idx_minor_scaling(
+            const Array<std::string,1>& gas_names,
+            const Array<std::string,1>& scaling_gas_atm,
+            Array<int,1> idx_minor_scaling_atm)
+    {
+        Array<int,1> idx_minor_scaling_atm_out({scaling_gas_atm.dim(1)});
+
+        for (int imnr=1; imnr<=scaling_gas_atm.dim(1); ++imnr)
+            idx_minor_scaling_atm_out({imnr}) = gas_names.find_indices(scaling_gas_atm({imnr}))[0];
+
+        idx_minor_scaling_atm = idx_minor_scaling_atm_out;
+    }
 }
 
 template<typename TF>
@@ -391,8 +431,6 @@ void Gas_optics<TF>::init_abs_coeffs(
     */
 
     // ---- post processing ----
-    // this%press_ref(:) = this%press_ref(:)
-
     //  creates log reference pressure
     this->press_ref_log = this->press_ref;
     for (int i1=1; i1<=this->press_ref_log.dim(1); ++i1)
@@ -401,18 +439,19 @@ void Gas_optics<TF>::init_abs_coeffs(
     // log scale of reference pressure
     this->press_ref_trop_log = std::log(press_ref_trop);
 
-    /*
-    ! Get index of gas (if present) for determining col_gas
-    call create_idx_minor(this%gas_names, gas_minor, identifier_minor, minor_gases_lower_red, &
-      this%idx_minor_lower)
-    call create_idx_minor(this%gas_names, gas_minor, identifier_minor, minor_gases_upper_red, &
-      this%idx_minor_upper)
-    ! Get index of gas (if present) that has special treatment in density scaling
-    call create_idx_minor_scaling(this%gas_names, scaling_gas_lower_red, &
-      this%idx_minor_scaling_lower)
-    call create_idx_minor_scaling(this%gas_names, scaling_gas_upper_red, &
-      this%idx_minor_scaling_upper)
+    // Get index of gas (if present) for determining col_gas
+    create_idx_minor(
+            this->gas_names, gas_minor, identifier_minor, minor_gases_lower_red, this->idx_minor_lower);
+    create_idx_minor(
+            this->gas_names, gas_minor, identifier_minor, minor_gases_upper_red, this->idx_minor_upper);
 
+    // Get index of gas (if present) that has special treatment in density scaling
+    create_idx_minor_scaling(
+            this->gas_names, scaling_gas_lower_red, this->idx_minor_scaling_lower);
+    create_idx_minor_scaling(
+            this->gas_names, scaling_gas_upper_red, this->idx_minor_scaling_upper);
+
+    /*
     ! create flavor list
     ! Reduce (remap) key_species list; checks that all key gases are present in incoming
     call create_key_species_reduce(gas_names,this%gas_names, &

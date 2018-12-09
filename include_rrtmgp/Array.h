@@ -130,8 +130,9 @@ class Array
         }
 
         inline std::vector<T>& v() { return data; }
+        inline int size() const { return ncells; }
 
-        inline std::array<int, N> find_indices(const T& value)
+        inline std::array<int, N> find_indices(const T& value) const
         {
             int pos = std::find(data.begin(), data.end(), value) - data.begin();
             return calc_indices<N>(pos, strides, offsets);

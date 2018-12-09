@@ -228,9 +228,6 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
         }
     }
 
-    for (auto g : gas_names)
-        std::cout << "CvH: " << g.first << " = " << g.second << std::endl;
-
     // Construct the k-distribution.
     Gas_optics<TF> kdist(
             available_gases,
@@ -265,9 +262,6 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
             planck_frac,
             rayl_lower,
             rayl_upper);
-
-    for (auto g : gas_names)
-        std::cout << "CvH: " << g.first << " = " << g.second << std::endl;
 
     throw 666;
 }

@@ -119,12 +119,12 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     int n_lev = group_nc.get_variable_dimensions("pres_level").at("level");
     int n_col = 1;
 
-    Array<double,2> pres_layer(group_nc.get_variable<double>("pres_layer", {n_lay, n_col}), {n_lay, n_col});
-    Array<double,2> pres_level(group_nc.get_variable<double>("pres_level", {n_lev, n_col}), {n_lay, n_col});
-    Array<double,2> temp_layer(group_nc.get_variable<double>("temp_layer", {n_lay, n_col}), {n_lay, n_col});
-    Array<double,2> temp_level(group_nc.get_variable<double>("temp_level", {n_lev, n_col}), {n_lay, n_col});
+    Array<double,2> pres_layer(group_nc.get_variable<double>("pres_layer", {n_lay, n_col}), {n_col, n_lay});
+    Array<double,2> pres_level(group_nc.get_variable<double>("pres_level", {n_lev, n_col}), {n_col, n_lev});
+    Array<double,2> temp_layer(group_nc.get_variable<double>("temp_layer", {n_lay, n_col}), {n_col, n_lay});
+    Array<double,2> temp_level(group_nc.get_variable<double>("temp_level", {n_lev, n_col}), {n_col, n_lev});
 
-    const int top_at_1 = pres_layer({0, 0}) < pres_layer({n_lay-1, 0});
+    const int top_at_1 = pres_layer({1, 1}) < pres_layer({1, n_lay});
 
     // Download surface boundary conditions for long wave.
     Array<double,1> surface_emissivity (group_nc.get_variable<double>("surface_emissivity" , {n_col}), {n_col});
@@ -152,9 +152,9 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     // Read gas names.
     Array<std::string,1> gas_names(get_variable_string("gas_names", {n_absorbers}, coef_lw_nc, n_char, true), {n_absorbers});
 
-    Array<int,3> key_species(coef_lw_nc.get_variable<int>("key_species", {n_bnds, n_layers, 2}), {n_bnds, n_layers, 2});
-    Array<double,2> band_lims(coef_lw_nc.get_variable<double>("bnd_limits_wavenumber", {n_bnds, 2}), {n_bnds, 2});
-    Array<int,2> band2gpt(coef_lw_nc.get_variable<int>("bnd_limits_gpt", {n_bnds, 2}), {n_bnds, 2});
+    Array<int,3> key_species(coef_lw_nc.get_variable<int>("key_species", {n_bnds, n_layers, 2}), {2, n_layers, n_bnds});
+    Array<double,2> band_lims(coef_lw_nc.get_variable<double>("bnd_limits_wavenumber", {n_bnds, 2}), {2, n_bnds});
+    Array<int,2> band2gpt(coef_lw_nc.get_variable<int>("bnd_limits_gpt", {n_bnds, 2}), {2, n_bnds});
     Array<double,1> press_ref(coef_lw_nc.get_variable<double>("press_ref", {n_press}), {n_press});
     Array<double,1> temp_ref(coef_lw_nc.get_variable<double>("temp_ref", {n_temps}), {n_temps});
 
@@ -162,8 +162,8 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     double temp_ref_t = coef_lw_nc.get_variable<double>("absorption_coefficient_ref_T");
     double press_ref_trop = coef_lw_nc.get_variable<double>("press_ref_trop");
 
-    Array<double,3> kminor_lower(coef_lw_nc.get_variable<double>("kminor_lower", {n_temps, n_mixingfracs, n_contributors_lower}), {n_temps, n_mixingfracs, n_contributors_lower});
-    Array<double,3> kminor_upper(coef_lw_nc.get_variable<double>("kminor_upper", {n_temps, n_mixingfracs, n_contributors_upper}), {n_temps, n_mixingfracs, n_contributors_lower});
+    Array<double,3> kminor_lower(coef_lw_nc.get_variable<double>("kminor_lower", {n_temps, n_mixingfracs, n_contributors_lower}), {n_contributors_lower, n_mixingfracs, n_temps});
+    Array<double,3> kminor_upper(coef_lw_nc.get_variable<double>("kminor_upper", {n_temps, n_mixingfracs, n_contributors_upper}), {n_contributors_upper, n_mixingfracs, n_temps});
 
     Array<std::string,1> gas_minor(get_variable_string("gas_minor", {n_minorabsorbers}, coef_lw_nc, n_char, false), {n_minorabsorbers});
     Array<std::string,1> identifier_minor(get_variable_string("identifier_minor", {n_minorabsorbers}, coef_lw_nc, n_char, false), {n_minorabsorbers});
@@ -171,8 +171,8 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     Array<std::string,1> minor_gases_lower(get_variable_string("minor_gases_lower", {n_minor_absorber_intervals_lower}, coef_lw_nc, n_char, false), {n_minor_absorber_intervals_lower});
     Array<std::string,1> minor_gases_upper(get_variable_string("minor_gases_upper", {n_minor_absorber_intervals_upper}, coef_lw_nc, n_char, false), {n_minor_absorber_intervals_upper});
 
-    Array<int,2> minor_limits_gpt_lower(coef_lw_nc.get_variable<int>("minor_limits_gpt_lower", {n_minor_absorber_intervals_lower, n_pairs}), {n_minor_absorber_intervals_lower, n_pairs});
-    Array<int,2> minor_limits_gpt_upper(coef_lw_nc.get_variable<int>("minor_limits_gpt_upper", {n_minor_absorber_intervals_upper, n_pairs}), {n_minor_absorber_intervals_upper, n_pairs});
+    Array<int,2> minor_limits_gpt_lower(coef_lw_nc.get_variable<int>("minor_limits_gpt_lower", {n_minor_absorber_intervals_lower, n_pairs}), {n_pairs, n_minor_absorber_intervals_lower});
+    Array<int,2> minor_limits_gpt_upper(coef_lw_nc.get_variable<int>("minor_limits_gpt_upper", {n_minor_absorber_intervals_upper, n_pairs}), {n_pairs, n_minor_absorber_intervals_upper});
 
     Array<int,1> minor_scales_with_density_lower(coef_lw_nc.get_variable<int>("minor_scales_with_density_lower", {n_minor_absorber_intervals_lower}), {n_minor_absorber_intervals_lower});
     Array<int,1> minor_scales_with_density_upper(coef_lw_nc.get_variable<int>("minor_scales_with_density_upper", {n_minor_absorber_intervals_upper}), {n_minor_absorber_intervals_upper});
@@ -186,12 +186,12 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     Array<int,1> kminor_start_lower(coef_lw_nc.get_variable<int>("kminor_start_lower", {n_minor_absorber_intervals_lower}), {n_minor_absorber_intervals_lower});
     Array<int,1> kminor_start_upper(coef_lw_nc.get_variable<int>("kminor_start_upper", {n_minor_absorber_intervals_upper}), {n_minor_absorber_intervals_upper});
 
-    Array<double,3> vmr_ref(coef_lw_nc.get_variable<double>("vmr_ref", {n_temps, n_extabsorbers, n_layers}), {n_temps, n_extabsorbers, n_layers});
+    Array<double,3> vmr_ref(coef_lw_nc.get_variable<double>("vmr_ref", {n_temps, n_extabsorbers, n_layers}), {n_layers, n_extabsorbers, n_temps});
 
-    Array<double,4> kmajor(coef_lw_nc.get_variable<double>("kmajor", {n_temps, n_press+1, n_mixingfracs, n_gpts}), {n_temps, n_press+1, n_mixingfracs, n_gpts});
+    Array<double,4> kmajor(coef_lw_nc.get_variable<double>("kmajor", {n_temps, n_press+1, n_mixingfracs, n_gpts}), {n_gpts, n_mixingfracs, n_press+1, n_temps});
 
-    Array<double,3> rayl_lower({n_temps, n_mixingfracs, n_gpts});
-    Array<double,3> rayl_upper({n_temps, n_mixingfracs, n_gpts});
+    Array<double,3> rayl_lower({n_gpts, n_mixingfracs, n_temps});
+    Array<double,3> rayl_upper({n_gpts, n_mixingfracs, n_temps});
 
     if (coef_lw_nc.variable_exists("rayl_lower"))
     {
@@ -200,8 +200,8 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     }
 
     // Is it really LW if so read these variables as well.
-    Array<double,2> totplnk({n_bnds, n_internal_sourcetemps});
-    Array<double,4> planck_frac({n_temps, n_press+1, n_mixingfracs, n_gpts});
+    Array<double,2> totplnk({n_internal_sourcetemps, n_bnds});
+    Array<double,4> planck_frac({n_gpts, n_mixingfracs, n_press+1, n_temps});
 
     if (coef_lw_nc.variable_exists("totplnk"))
     {

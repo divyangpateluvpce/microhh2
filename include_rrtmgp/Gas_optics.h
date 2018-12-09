@@ -52,6 +52,9 @@ class Gas_optics : public Optical_props<TF>
         TF press_ref_min, press_ref_max;
         TF press_ref_trop, press_ref_trop_log;
 
+        TF press_ref_log_delta;
+        TF temp_ref_delta;
+
         Array<TF,1> press_ref, press_ref_log, temp_ref;
 
         Array<std::string,1> gas_names;
@@ -79,6 +82,11 @@ class Gas_optics : public Optical_props<TF>
 
         Array<int,1> idx_minor_scaling_lower;
         Array<int,1> idx_minor_scaling_upper;
+
+        Array<int,1> is_key;
+        Array<int,2> flavor;
+
+        int get_ngas() const { return this->gas_names.dim(0); }
 
         void init_abs_coeffs(
                 std::vector<Gas_concs<TF>>& available_gases,
@@ -462,31 +470,31 @@ void Gas_optics<TF>::init_abs_coeffs(
     call create_flavor(key_species_red, this%flavor)
     ! create gpoint_flavor list
     call create_gpoint_flavor(key_species_red, this%get_gpoint_bands(), this%flavor, this%gpoint_flavor)
-
-    ! minimum, maximum reference temperature, pressure -- assumes low-to-high ordering
-    !   for T, high-to-low ordering for p
-    this%temp_ref_min  = this%temp_ref (1)
-    this%temp_ref_max  = this%temp_ref (size(this%temp_ref))
-    this%press_ref_min = this%press_ref(size(this%press_ref))
-    this%press_ref_max = this%press_ref(1)
-
-    ! creates press_ref_log, temp_ref_delta
-    this%press_ref_log_delta = (log(this%press_ref_min)-log(this%press_ref_max))/(size(this%press_ref)-1)
-    this%temp_ref_delta      = (this%temp_ref_max-this%temp_ref_min)/(size(this%temp_ref)-1)
-
-    ! Which species are key in one or more bands?
-    !   this%flavor is an index into this%gas_names
-    !
-    if (allocated(this%is_key)) deallocate(this%is_key) ! Shouldn't ever happen...
-    allocate(this%is_key(this%get_ngas()))
-    this%is_key(:) = .False.
-    do j = 1, size(this%flavor, 2)
-      do i = 1, size(this%flavor, 1) ! should be 2
-        if (this%flavor(i,j) /= 0) this%is_key(this%flavor(i,j)) = .true.
-      end do
-    end do
     */
+
+    // minimum, maximum reference temperature, pressure -- assumes low-to-high ordering
+    // for T, high-to-low ordering for p
+    this->temp_ref_min = this->temp_ref({1});
+    this->temp_ref_max = this->temp_ref({temp_ref.dim(1)});
+    this->press_ref_min = this->press_ref({press_ref.dim(1)});
+    this->press_ref_max = this->press_ref({1});
+
+    // creates press_ref_log, temp_ref_delta
+    this->press_ref_log_delta = (std::log(this->press_ref_min) - std::log(this->press_ref_max)) / (this->press_ref.dim(1)-1);
+    this->temp_ref_delta = (this->temp_ref_max - this->temp_ref_min) / (this->temp_ref.dim(1)-1);
+
+    // Which species are key in one or more bands?
+    // this->flavor is an index into this->gas_names
+    // if (allocated(this%is_key)) deallocate(this%is_key) ! Shouldn't ever happen...
+    Array<int,1> is_key({get_ngas()}); // CvH bool, defaults to 0.?
+
+    for (int j=1; j<=this->flavor.dim(2); ++j)
+        for (int i=1; i<=this->flavor.dim(1); ++i)
+        {
+            if (this->flavor({i,j}) != 0)
+                is_key({this->flavor({i,j})}) = true;
+        }
+
+    this->is_key = is_key;
 }
-
-
 #endif

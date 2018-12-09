@@ -48,7 +48,7 @@ class Gas_optics : public Optical_props<TF>
             // Temperature steps for Planck function interpolation.
             // Assumes that temperature minimum and max are the same for the absorption coefficient grid and the
             // Planck grid and the Planck grid is equally spaced.
-            totplnk_delta = (temp_ref_max - temp_ref_min) / (totplnk.get_dims()[1]-1);
+            totplnk_delta = (temp_ref_max - temp_ref_min) / (totplnk.dim(1)-1);
 
             init_abs_coeffs(
                     available_gases,
@@ -115,9 +115,7 @@ class Gas_optics : public Optical_props<TF>
                 Array<TF,3>& rayl_lower,
                 Array<TF,3>& rayl_upper)
         {
-            //
             // Which gases known to the gas optics are present in the host model (available_gases)?
-            //
             std::vector<std::string> gas_names_to_use;
 
             for (const std::string& s : gas_names.v())
@@ -135,16 +133,19 @@ class Gas_optics : public Optical_props<TF>
             Array<std::string,1> gas_names_this(std::move(gas_names_to_use), {n_gas});
             this->gas_names = gas_names_this;
 
-            //  Initialize the gas optics object, keeping only those gases known to the
-            //    gas optics and also present in the host model.
-            auto vmr_ref_dims = vmr_ref.get_dims();
-            Array<TF,3> vmr_ref_red({vmr_ref_dims[2], n_gas+1, vmr_ref_dims[0]});
-            // CvH: the fortran negative indexing freaks me out...
+            // Initialize the gas optics object, keeping only those gases known to the
+            // gas optics and also present in the host model.
+            // Add an offset to the indexing to interface the negative ranging of fortran.
+            Array<TF,3> vmr_ref_red({vmr_ref.dim(1), n_gas+1, vmr_ref.dim(3)});
+            vmr_ref_red.set_offsets({0, -1, 0});
+
             // allocate(vmr_ref_red(size(vmr_ref,dim=1),0:ngas, &
             //                      size(vmr_ref,dim=3)))
 
             //  Gas 0 is used in single-key species method, set to 1.0 (col_dry)
-            auto vmr_ref_red_dims = vmr_ref_red.get_dims();
+            for (int i1=1; i1<=vmr_ref_red.dim(1); ++i1)
+                for (int i3=1; i3<=vmr_ref_red.dim(3); ++i3)
+                    vmr_ref_red({i1,0,i3}) = vmr_ref({i1,1,i3});
 
             /*
             vmr_ref_red(:,0,:) = vmr_ref(:,1,:)

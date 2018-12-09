@@ -9,29 +9,22 @@ template<int N>
 inline std::array<int, N> calc_strides(const std::array<int, N>& dims)
 {
     std::array<int, N> strides;
-    strides[N-1] = 1;
-    for (int i=N-2; i>=0; --i)
-        strides[i] = strides[i+1]*dims[i+1];
+    strides[0] = 1;
+    for (int i=1; i<N; ++i)
+        strides[i] = strides[i-1]*dims[i-1];
 
     return strides;
 }
 
 template<int N>
-inline int c_index(const std::array<int, N>& index, const std::array<int, N>& stride)
+inline int calc_index(
+        const std::array<int, N>& indices,
+        const std::array<int, N>& strides,
+        const std::array<int, N>& offsets)
 {
     int sum = 0;
     for (int i=0; i<N; ++i)
-        sum += index[i]*stride[i];
-
-    return sum;
-}
-
-template<int N>
-inline int fortran_index(const std::array<int, N>& index, const std::array<int, N>& stride)
-{
-    int sum = 0;
-    for (int i=0; i<N; ++i)
-        sum += (index[i]-1)*stride[N-1-i];
+        sum += (indices[i]-offsets[i]-1)*strides[i];
 
     return sum;
 }
@@ -65,7 +58,6 @@ class Array_iterator
     friend bool operator!=(const Array_iterator<T>& left, const Array_iterator<T>& right) { return left.n != right.n; }
 };
 
-
 template<typename T, int N>
 class Array
 {
@@ -73,6 +65,7 @@ class Array
         Array() :
             ncells(0)
         {}
+
         Array(const std::array<int, N>& dims) :
             dims(dims),
             ncells(product<N>(dims)),
@@ -102,8 +95,14 @@ class Array
             dims(std::exchange(array.dims, {})),
             ncells(std::exchange(array.ncells, 0)),
             data(std::move(array.data)),
-            strides(std::exchange(array.strides, {}))
+            strides(std::exchange(array.strides, {})),
+            offsets(std::exchange(array.offsets, {}))
         {}
+
+        inline void set_offsets(const std::array<int, N>& offsets)
+        {
+           this->offsets = offsets;
+        }
 
         inline std::vector<T>& v() { return data; }
 
@@ -113,41 +112,28 @@ class Array
             this->data = data;
         }
 
-        // C++-style indexing with []
-        inline T& operator[](const std::array<int, N>& indices)
-        {
-            const int index = c_index<N>(indices, strides);
-            return data[index];
-        }
-
-        inline T operator[](const std::array<int, N>& index) const
-        {
-            const int i = c_index<N>(index, strides);
-            return data[i];
-        }
-
-        // Fortran-style indexing with ()
         inline T& operator()(const std::array<int, N>& indices)
         {
-            const int index = fortran_index<N>(indices, strides);
+            const int index = calc_index<N>(indices, strides, offsets);
             return data[index];
         }
 
-        inline T operator()(const std::array<int, N>& index) const
+        inline T operator()(const std::array<int, N>& indices) const
         {
-            const int i = fortran_index<N>(index, strides);
-            return data[i];
+            const int index = calc_index<N>(indices, strides, offsets);
+            return data[index];
         }
 
         inline Array_iterator<T> begin() { return Array_iterator<T>(data, 0); }
         inline Array_iterator<T> end()   { return Array_iterator<T>(data, ncells); }
 
-        inline const std::array<int, N>& get_dims() const { return dims; }
+        inline int dim(const int i) const { return dims[i-1]; }
 
     private:
         std::array<int, N> dims;
         int ncells;
         std::vector<T> data;
         std::array<int, N> strides;
+        std::array<int, N> offsets;
 };
 #endif

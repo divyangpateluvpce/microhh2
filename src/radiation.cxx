@@ -213,9 +213,9 @@ void Radiation<TF>::create(Thermo<TF>& thermo, Netcdf_handle& input_nc)
     // Read the gas concentrations.
     std::vector<Gas_concs<double>> available_gases;
 
-    for (int i=0; i<gas_names.get_dims()[0]; ++i)
+    for (int i=1; i<=gas_names.dim(1); ++i)
     {
-        const std::string& gas_name = gas_names[{i}];
+        const std::string& gas_name = gas_names({i});
         if (gas_name == "h2o" || gas_name == "o3")
         {
             Array<double,2> conc(group_nc.get_variable<double>(gas_name, {n_lay, n_col}), {n_lay, n_col});

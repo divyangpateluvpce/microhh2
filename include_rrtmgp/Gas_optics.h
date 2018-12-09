@@ -77,11 +77,15 @@ class Gas_optics : public Optical_props<TF>
         Array<TF,4> planck_frac;
         TF totplnk_delta;
         TF temp_ref_min, temp_ref_max;
-        TF pres_ref_min, pres_ref_max;
+        TF press_ref_min, press_ref_max;
+        TF press_ref_trop, press_ref_trop_log;
 
         Array<TF,1> press_ref, press_ref_log, temp_ref;
 
         Array<std::string,1> gas_names;
+
+        Array<TF,3> vmr_ref;
+        Array<TF,4> kmajor;
 
         void init_abs_coeffs(
                 std::vector<Gas_concs<TF>>& available_gases,
@@ -139,25 +143,25 @@ class Gas_optics : public Optical_props<TF>
             Array<TF,3> vmr_ref_red({vmr_ref.dim(1), n_gas+1, vmr_ref.dim(3)});
             vmr_ref_red.set_offsets({0, -1, 0});
 
-            // allocate(vmr_ref_red(size(vmr_ref,dim=1),0:ngas, &
-            //                      size(vmr_ref,dim=3)))
-
-            //  Gas 0 is used in single-key species method, set to 1.0 (col_dry)
+            // Gas 0 is used in single-key species method, set to 1.0 (col_dry)
             for (int i1=1; i1<=vmr_ref_red.dim(1); ++i1)
                 for (int i3=1; i3<=vmr_ref_red.dim(3); ++i3)
                     vmr_ref_red({i1,0,i3}) = vmr_ref({i1,1,i3});
 
+            for (int i=1; i<=n_gas; ++i)
+            {
+                int idx = gas_names.find_indices(this->gas_names({i}))[0];
+                for (int i1=1; i1<=vmr_ref_red.dim(1); ++i1)
+                    for (int i3=1; i3<=vmr_ref_red.dim(3); ++i3)
+                        vmr_ref_red({i1,i,i3}) = vmr_ref({i1,idx+1,i3}); // CvH: why +1?
+            }
+
+            this->vmr_ref = std::move(vmr_ref_red);
+
+            // Reduce minor arrays so variables only contain minor gases that are available.
+            // Reduce size of minor Arrays.
+           
             /*
-            vmr_ref_red(:,0,:) = vmr_ref(:,1,:)
-            do i = 1, ngas
-              idx = string_loc_in_array(this%gas_names(i), gas_names)
-              vmr_ref_red(:,i,:) = vmr_ref(:,idx+1,:)
-            enddo
-            call move_alloc(vmr_ref_red, this%vmr_ref)
-            !
-            ! Reduce minor arrays so variables only contain minor gases that are available
-            ! Reduce size of minor Arrays
-            !
             call reduce_minor_arrays(available_gases, &
                                      gas_names, &
                                      gas_minor,identifier_minor, &
@@ -192,12 +196,14 @@ class Gas_optics : public Optical_props<TF>
                                      scaling_gas_upper_red, &
                                      this%scale_by_complement_upper, &
                                      this%kminor_start_upper)
+                                     */
         
-            ! Arrays not reduced by the presence, or lack thereof, of a gas
-            this%press_ref = press_ref
-            this%temp_ref  = temp_ref
-            this%kmajor    = kmajor
-        
+            // Arrays not reduced by the presence, or lack thereof, of a gas
+            this->press_ref = press_ref;
+            this->temp_ref = temp_ref;
+            this->kmajor = kmajor;
+       
+            /*
             if(allocated(rayl_lower) .neqv. allocated(rayl_upper)) then
               err_message = "rayl_lower and rayl_upper must have the same allocation status"
               return
@@ -207,18 +213,20 @@ class Gas_optics : public Optical_props<TF>
               this%krayl(:,:,:,1) = rayl_lower
               this%krayl(:,:,:,2) = rayl_upper
             end if
+            */
         
-            ! ---- post processing ----
-            ! Incoming coefficients file has units of Pa
-            this%press_ref(:) = this%press_ref(:)
+            // ---- post processing ----
+            // this%press_ref(:) = this%press_ref(:)
         
-            ! creates log reference pressure
-            allocate(this%press_ref_log(size(this%press_ref)))
-            this%press_ref_log(:) = log(this%press_ref(:))
-        
-            ! log scale of reference pressure
-            this%press_ref_trop_log = log(press_ref_trop)
-        
+            //  creates log reference pressure
+            this->press_ref_log = this->press_ref;
+            for (int i1=1; i1<=this->press_ref_log.dim(1); ++i1)
+                this->press_ref_log({i1}) = std::log(this->press_ref_log({i1}));
+
+            // log scale of reference pressure
+            this->press_ref_trop_log = std::log(press_ref_trop);
+       
+            /*
             ! Get index of gas (if present) for determining col_gas
             call create_idx_minor(this%gas_names, gas_minor, identifier_minor, minor_gases_lower_red, &
               this%idx_minor_lower)

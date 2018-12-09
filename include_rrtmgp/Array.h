@@ -30,6 +30,28 @@ inline int calc_index(
 }
 
 template<int N>
+inline std::array<int, N> calc_indices(
+        int index, const std::array<int, N>& strides, const std::array<int, N>& offsets)
+{
+    std::array<int, N> indices;
+
+    for (int i=N-1; i>=1; --i)
+    {
+        indices[i] = index / strides[i];
+        index %= strides[i];
+    }
+    indices[0] = index;
+
+    for (int i=0; i<N; ++i)
+    {
+        indices[i] += offsets[i] + 1;
+        std::cout << "CvH: " << indices[i] << std::endl;
+    }
+
+    return indices;
+}
+
+template<int N>
 inline int product(const std::array<int, N>& array)
 {
     int product = array[0];
@@ -108,6 +130,12 @@ class Array
         }
 
         inline std::vector<T>& v() { return data; }
+
+        inline std::array<int, N> find_indices(const T& value)
+        {
+            int pos = std::find(data.begin(), data.end(), value) - data.begin();
+            return calc_indices<N>(pos, strides, offsets);
+        }
 
         inline void operator=(std::vector<T>&& data)
         {

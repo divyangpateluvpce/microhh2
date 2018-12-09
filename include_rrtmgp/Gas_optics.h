@@ -122,33 +122,31 @@ class Gas_optics : public Optical_props<TF>
 
             for (const std::string& s : gas_names.v())
             {
-                auto it = std::find_if(available_gases.begin(), available_gases.end(),
+                auto it = std::find_if(
+                        available_gases.begin(), available_gases.end(),
                         [&s](const auto& a){ return a.get_name() == s; } );
                 if (it != available_gases.end())
                     gas_names_to_use.push_back(s);
             }
 
+            // Now the number of gases is the union of those known to the k-distribution and provided
+            // by the host model.
             const int n_gas = gas_names_to_use.size();
             Array<std::string,1> gas_names_this(std::move(gas_names_to_use), {n_gas});
             this->gas_names = gas_names_this;
 
-            throw 666;
-
-            // 
-            // Now the number of gases is the union of those known to the k-distribution and provided
-            //   by the host model
-            // 
-
-
-            //  
             //  Initialize the gas optics object, keeping only those gases known to the
-            //    gas optics and also present in the host model
-            // 
+            //    gas optics and also present in the host model.
+            auto vmr_ref_dims = vmr_ref.get_dims();
+            Array<TF,3> vmr_ref_red({vmr_ref_dims[2], n_gas+1, vmr_ref_dims[0]});
+            // CvH: the fortran negative indexing freaks me out...
+            // allocate(vmr_ref_red(size(vmr_ref,dim=1),0:ngas, &
+            //                      size(vmr_ref,dim=3)))
+
+            //  Gas 0 is used in single-key species method, set to 1.0 (col_dry)
+            auto vmr_ref_red_dims = vmr_ref_red.get_dims();
+
             /*
-        
-            allocate(vmr_ref_red(size(vmr_ref,dim=1),0:ngas, &
-                                 size(vmr_ref,dim=3)))
-            ! Gas 0 is used in single-key species method, set to 1.0 (col_dry)
             vmr_ref_red(:,0,:) = vmr_ref(:,1,:)
             do i = 1, ngas
               idx = string_loc_in_array(this%gas_names(i), gas_names)

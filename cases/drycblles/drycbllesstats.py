@@ -9,7 +9,7 @@ end   = 19
 step  = 2
 
 stats = netCDF4.Dataset("drycblles.default.0000000.nc","r")
-t  = stats.variables["t"][start:end]
+t  = stats.variables["time"][start:end]
 z  = stats.variables["z"][:]
 zh = stats.variables["zh"][:]
 st  = stats.variables["th"][start:end,:]
@@ -30,7 +30,7 @@ u2 = numpy.mean(u2t,0)
 v2 = numpy.mean(v2t,0)
 w2 = numpy.mean(w2t,0)
 s2 = numpy.mean(s2t,0)
- 
+
 sturb = numpy.mean(sturbt,0)
 sdiff = numpy.mean(sdifft,0)
 sflux = numpy.mean(sfluxt,0)
@@ -89,4 +89,3 @@ figure()
 plot(t, ht)
 xlabel(r'$time [s]$')
 ylabel(r'$h [m]$')
-

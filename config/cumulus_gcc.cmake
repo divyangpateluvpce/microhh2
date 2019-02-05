@@ -22,8 +22,8 @@ if(USECUDA)
   list(APPEND CUDA_NVCC_FLAGS "-std=c++14")
 endif()
 if(USEMPI)
-  set(ENV{CC}  mpicc ) # C compiler for parallel build
-  set(ENV{CXX} mpicxx) # C++ compiler for parallel build
+  set(ENV{CC}  mpi++ ) # C compiler for parallel build
+  set(ENV{CXX} mpic++) # C++ compiler for parallel build
 else()
   set(ENV{CC}  gcc) # C compiler for serial build
   set(ENV{CXX} g++) # C++ compiler for serial build

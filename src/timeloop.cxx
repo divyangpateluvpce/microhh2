@@ -426,10 +426,10 @@ void Timeloop<TF>::load(int starttime)
         }
         else
         {
-            fread(&itime    , sizeof(unsigned long), 1, pFile);
-            fread(&idt      , sizeof(unsigned long), 1, pFile);
-            fread(&iteration, sizeof(int), 1, pFile);
-
+            int size;
+            size = fread(&itime    , sizeof(unsigned long), 1, pFile);
+            size = fread(&idt      , sizeof(unsigned long), 1, pFile);
+            size = fread(&iteration, sizeof(int), 1, pFile);
             fclose(pFile);
         }
         master.print_message("OK\n");

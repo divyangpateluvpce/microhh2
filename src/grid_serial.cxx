@@ -83,17 +83,17 @@ void Grid<TF>::load_grid()
     }
     else
         master.print_message("OK\n");
+        int size;
+        size = fread(&gd.x [gd.istart], sizeof(TF), gd.itot, pFile);
+        size = fread(&gd.xh[gd.istart], sizeof(TF), gd.itot, pFile);
+        size = fread(&gd.y [gd.jstart], sizeof(TF), gd.jtot, pFile);
+        size = fread(&gd.yh[gd.jstart], sizeof(TF), gd.jtot, pFile);
+        size = fread(&gd.z [gd.kstart], sizeof(TF), gd.ktot, pFile);
+        size = fread(&gd.zh[gd.kstart], sizeof(TF), gd.ktot, pFile);
+        fclose(pFile);
 
-    fread(&gd.x [gd.istart], sizeof(TF), gd.itot, pFile);
-    fread(&gd.xh[gd.istart], sizeof(TF), gd.itot, pFile);
-    fread(&gd.y [gd.jstart], sizeof(TF), gd.jtot, pFile);
-    fread(&gd.yh[gd.jstart], sizeof(TF), gd.jtot, pFile);
-    fread(&gd.z [gd.kstart], sizeof(TF), gd.ktot, pFile);
-    fread(&gd.zh[gd.kstart], sizeof(TF), gd.ktot, pFile);
-    fclose(pFile);
-
-    // calculate the missing coordinates
-    calculate();
+       // calculate the missing coordinates
+       calculate();
 }
 
 template class Grid<double>;

@@ -637,8 +637,8 @@ int Field3d_io<TF>::load_xy_slice(TF* restrict data, TF* restrict tmp, char* fil
     pFile = fopen(filename, "rb");
     if (pFile == NULL)
         return 1;
-
-    fread(tmp, sizeof(TF), count, pFile);
+    int size;
+    size = fread(tmp, sizeof(TF), count, pFile);
     fclose(pFile);
 
     // Subtract the ghost cells in case of a pure 2d plane that does not have ghost cells.

@@ -24,6 +24,7 @@
 #include "tools.h"
 #include "boundary_cyclic.h"
 
+static struct timeval start_time , stop_time;
 namespace
 {
     template<typename TF> __global__
@@ -94,12 +95,28 @@ namespace
         }
     }
 }
+#ifdef USEMPI
 
 template<typename TF>
 void Boundary_cyclic<TF>::exec_g(TF* data)
 {
-    auto& gd = grid.get_grid_data();
+    exec(data, Edge::Both_edges);
+}
 
+template<typename TF>
+void Boundary_cyclic<TF>::exec_2d_g(TF* data)
+{
+    exec_2d(data);
+}
+
+#else
+
+template<typename TF>
+void Boundary_cyclic<TF>::exec_g(TF* data)
+{
+
+    //printf("%f , %f \n",*data,*(data+1)/*,*(data+2),*(data+3),*(data+4),*(data+5),*(data+6)*/);
+    auto& gd = grid.get_grid_data();
     const int blocki_x = gd.igc;
     const int blockj_x = 256 / gd.igc + (256%gd.igc > 0);
     const int gridi_x  = 1;
@@ -123,15 +140,14 @@ void Boundary_cyclic<TF>::exec_g(TF* data)
     boundary_cyclic_y_g<TF><<<gridGPUy,blockGPUy>>>(
         data, gd.icells, gd.jcells, gd.kcells,
         gd.istart, gd.jstart, gd.iend, gd.jend, gd.igc, gd.jgc);
-
     cuda_check_error();
 }
 
 template<typename TF>
 void Boundary_cyclic<TF>::exec_2d_g(TF* data)
 {
+    printf("%f",data);
     auto& gd = grid.get_grid_data();
-
     const int blocki_x = gd.igc;
     const int blockj_x = 256 / gd.igc + (256%gd.igc > 0);
     const int gridi_x  = 1;
@@ -158,6 +174,8 @@ void Boundary_cyclic<TF>::exec_2d_g(TF* data)
 
     cuda_check_error();
 }
+
+#endif
 
 template class Boundary_cyclic<double>;
 template class Boundary_cyclic<float>;

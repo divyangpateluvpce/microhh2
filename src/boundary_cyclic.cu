@@ -24,7 +24,6 @@
 #include "tools.h"
 #include "boundary_cyclic.h"
 
-static struct timeval start_time , stop_time;
 namespace
 {
     template<typename TF> __global__
@@ -114,8 +113,6 @@ void Boundary_cyclic<TF>::exec_2d_g(TF* data)
 template<typename TF>
 void Boundary_cyclic<TF>::exec_g(TF* data)
 {
-
-    //printf("%f , %f \n",*data,*(data+1)/*,*(data+2),*(data+3),*(data+4),*(data+5),*(data+6)*/);
     auto& gd = grid.get_grid_data();
     const int blocki_x = gd.igc;
     const int blockj_x = 256 / gd.igc + (256%gd.igc > 0);
@@ -146,7 +143,6 @@ void Boundary_cyclic<TF>::exec_g(TF* data)
 template<typename TF>
 void Boundary_cyclic<TF>::exec_2d_g(TF* data)
 {
-    printf("%f",data);
     auto& gd = grid.get_grid_data();
     const int blocki_x = gd.igc;
     const int blockj_x = 256 / gd.igc + (256%gd.igc > 0);

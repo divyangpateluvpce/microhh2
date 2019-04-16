@@ -95,6 +95,8 @@ class Master
 
         void print_error  (const char *format, ...);
 
+        void SetDeviceBeforeInit();
+
         int get_mpiid() const { return md.mpiid; }
         const MPI_data& get_MPI_data() const { return md; }
 

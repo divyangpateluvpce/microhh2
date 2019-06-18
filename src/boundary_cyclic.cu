@@ -100,14 +100,12 @@ namespace
 template<typename TF>
 void Boundary_cyclic<TF>::exec_g(TF* data)
 {
-    master.SetDeviceBeforeInit();
     exec(data, Edge::Both_edges);
 }
 
 template<typename TF>
 void Boundary_cyclic<TF>::exec_2d_g(TF* data)
 {
-    master.SetDeviceBeforeInit();
     exec_2d(data);
 }
 
@@ -116,7 +114,6 @@ void Boundary_cyclic<TF>::exec_2d_g(TF* data)
 template<typename TF>
 void Boundary_cyclic<TF>::exec_g(TF* data)
 {
-    master.SetDeviceBeforeInit();
     auto& gd = grid.get_grid_data();
     const int blocki_x = gd.igc;
     const int blockj_x = 256 / gd.igc + (256%gd.igc > 0);
@@ -147,7 +144,6 @@ void Boundary_cyclic<TF>::exec_g(TF* data)
 template<typename TF>
 void Boundary_cyclic<TF>::exec_2d_g(TF* data)
 {
-    master.SetDeviceBeforeInit();
     auto& gd = grid.get_grid_data();
     const int blocki_x = gd.igc;
     const int blockj_x = 256 / gd.igc + (256%gd.igc > 0);

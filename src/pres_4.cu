@@ -513,9 +513,16 @@ void Pres_4<TF>::exec(double dt)
     const TF dti = 1./dt;
 
     // Calculate the cyclic BCs first.
+    #ifdef USEMPI
+    boundary_cyclic.exec(fields.mt.at("u")->fld_g, Edge::East_west_edge  );
+    boundary_cyclic.exec(fields.mt.at("v")->fld_g, Edge::North_south_edge);
+
+    #else
     boundary_cyclic.exec_g(fields.mt.at("u")->fld_g);
     boundary_cyclic.exec_g(fields.mt.at("v")->fld_g);
     boundary_cyclic.exec_g(fields.mt.at("w")->fld_g);
+
+    #endif
 
     ghost_cells_wt_g<<<grid2dGPU, block2dGPU>>>(
         fields.mt.at("w")->fld_g,
@@ -604,7 +611,13 @@ void Pres_4<TF>::exec(double dt)
         gd.imax,   gd.jmax,   gd.kmax);
     cuda_check_error();
 
+    #ifdef USEMPI
+    boundary_cyclic.exec(fields.sd.at("p")->fld_g);
+
+    #else
     boundary_cyclic.exec_g(fields.sd.at("p")->fld_g);
+
+    #endif
 
     // 3. Get the pressure tendencies from the pressure field.
     pres_out_g<<<gridGPU, blockGPU>>>(

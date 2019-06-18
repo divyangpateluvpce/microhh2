@@ -272,9 +272,16 @@ void Pres_2<TF>::exec(double dt)
     auto tmp2 = fields.get_tmp_g();
 
     // calculate the cyclic BCs first
+    # ifdef USEMPI
+    boundary_cyclic.exec(fields.mt.at("u")->fld_g, Edge::East_west_edge  );
+    boundary_cyclic.exec(fields.mt.at("v")->fld_g, Edge::North_south_edge);
+
+    # else
     boundary_cyclic.exec_g(fields.mt.at("u")->fld_g);
     boundary_cyclic.exec_g(fields.mt.at("v")->fld_g);
     boundary_cyclic.exec_g(fields.mt.at("w")->fld_g);
+
+    # endif
 
     pres_in_g<TF><<<gridGPU, blockGPU>>>(
         fields.sd.at("p")->fld_g,
@@ -317,7 +324,14 @@ void Pres_2<TF>::exec(double dt)
         gd.imax,    gd.jmax,   gd.kmax);
     cuda_check_error();
 
+
+    #ifdef USEMPI
+    boundary_cyclic.exec(fields.sd.at("p")->fld_g);
+
+    #else
     boundary_cyclic.exec_g(fields.sd.at("p")->fld_g);
+
+    #endif
 
     pres_out_g<TF><<<gridGPU, blockGPU>>>(
         fields.mt.at("u")->fld_g, fields.mt.at("v")->fld_g, fields.mt.at("w")->fld_g,

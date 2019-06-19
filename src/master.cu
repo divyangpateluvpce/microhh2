@@ -29,18 +29,12 @@
 #include "tools.h"
 #define ENV_LOCAL_RANK	"MV2_COMM_WORLD_LOCAL_RANK"
 
-void Master::SetDeviceBeforeInit()
+void Master::SetDeviceBeforeInit() // It's tested with single node multi-GPU.
 {
-	char * localRankStr = NULL;
-	int rank = 0, devCount = 0;
-
-	// We extract the local rank initialization using an environment variable
-	if ((localRankStr = getenv(ENV_LOCAL_RANK)) != NULL)
-	{
-		rank = atoi(localRankStr);
-	}
-
-	  cuda_safe_call(cudaGetDeviceCount(&devCount));
-    cuda_safe_call(cudaSetDevice(rank % devCount));
+  #ifdef USEMPI
+	int devCount = 0;
+  cuda_safe_call(cudaGetDeviceCount(&devCount));
+  cuda_safe_call(cudaSetDevice(md.mpiid % devCount));
   cuda_check_error();
+  #endif
 }

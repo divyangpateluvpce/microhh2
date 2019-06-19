@@ -449,6 +449,7 @@ template<typename TF>
 void Model<TF>::prepare_gpu()
 {
     // Load all the necessary data to the GPU.
+    master.SetDeviceBeforeInit(); // It's tested with single node multi-GPU. if you feel it's not working with Multi-node then remove this function. 
     master.print_message("Preparing the GPU\n");
     grid    ->prepare_device();
     fields  ->prepare_device();
